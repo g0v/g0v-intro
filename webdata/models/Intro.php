@@ -10,6 +10,10 @@ class Intro extends Pix_Table
         $this->_columns['id'] = array('type' => 'int', 'auto_increment' => true);
         $this->_columns['event'] = array('type' => 'varchar', 'size' => 16);
         $this->_columns['created_at'] = array('type' => 'int');
+        $this->_columns['created_by'] = array('type' => 'varchar', 'size' => 32);
         $this->_columns['data'] = array('type' => 'text');
+
+        $this->addIndex('event_time', array('event', 'created_at'));
+        $this->addIndex('event_user', array('event', 'created_by'));
     }
 }
