@@ -1,2 +1,14 @@
 <?= $this->partial('common/header.phtml', $this) ?>
+<h1>收集自介活動</h1>
+<ul>
+<?php foreach (Event::search(arraY('status' => 0)) as $event) { ?>
+<li><a href="/event/show/<?= $event->id ?>"><?= $this->escape($event->name) ?></a></li>
+<?php } ?>
+</ul>
+<h1>已結束活動</h1>
+<ul>
+<?php foreach (Event::search(arraY('status' => 1)) as $event) { ?>
+<li><a href="/event/show/<?= $event->id ?>"><?= $this->escape($event->name) ?></a></li>
+<?php } ?>
+</ul>
 <?= $this->partial('common/footer.phtml', $this) ?>
