@@ -1,0 +1,146 @@
+<?= $this->partial('common/header.phtml', $this) ?>
+<h1>活動：<?= $this->escape($this->event->name) ?></h1>
+<hr>
+<h2>我要錄自介</h2>
+<?php if ($this->user) { ?>
+<form method="post" action="/event/saveintro/<?= $this->event->id ?>">
+<input type="hidden" name="record_data" value="">
+<input type="hidden" name="record_length" value="">
+Slack 帳號：<?= $this->escape($this->user->name) ?><br>
+<?php if (!$this->intro) { ?>
+顯示頭像：<img src="<?= $this->escape(Pix_Session::get('image')) ?>" width="128" height="128"><br>
+<input type="hidden" name="avatar" value="<?= $this->escape(Pix_Session::get('image')) ?>">
+顯示名稱：<input type="text" name="display_name" value="<?= $this->escape($this->user->name) ?>"><br>
+三個關鍵字：<input type="text" name="keyword"><br>
+錄音：<button id="record">按我錄音</button>
+<button id="replay" style="display:none">按我聽錄音</button>
+<audio id="replay-audio"></audio>
+<span id="record-time">(目前沒有錄音，若不錄音將會以語音念出您的三個關鍵字）</span><br>
+<?php } else { ?>
+<?php $data = json_decode($this->intro->data) ?>
+顯示頭像：<img src="<?= $this->escape($data->avatar) ?>" width="128" height="128"><br>
+<input type="hidden" name="avatar" value="<?= $this->escape($data->avatar) ?>">
+顯示名稱：<input type="text" name="display_name" value="<?= $this->escape($data->display_name) ?>"><br>
+三個關鍵字：<input type="text" name="keyword" value="<?= $this->escape($data->keyword) ?>"><br>
+錄音：<button id="record">按我錄音</button>
+<button id="replay" style="display:none">按我聽錄音</button>
+<audio id="replay-audio"></audio>
+<span id="record-time">(目前沒有錄音，若不錄音將會以語音念出您的三個關鍵字）</span><br>
+<?php if ($this->intro_voice) { ?>
+<script>
+var record_data = <?= json_encode($this->intro_voice->voice) ?>;
+$('#replay-audio')[0].src = 'data:audio/webm;codecs=opus;base64,' + record_data;
+record_length = <?= intval($this->intro_voice->length) / 1000 ?>;
+$('[name="record_length"]').val(record_length * 1000);
+$('[name="record_data"]').val(record_data);
+$('#replay').show();
+$('#record-time').text('有錄音記錄，錄音長度 ' + record_length.toPrecision(2) + ' 秒');
+
+</script>
+<?php } ?>
+<?php } ?>
+<button type="submit">儲存</button>
+</form>
+<script>
+var recorder;
+
+setInterval(function(){
+	if ($('#record').data('record_at')) {
+		var delta = ((new Date).getTime() - $('#record').data('record_at')) / 1000;
+		$('#record-time').text('錄音中：' + delta.toPrecision(2) + ' 秒');
+		if (delta > 10) {
+			recordButtonClick();
+		}
+	}
+}, 100);
+
+var recordButtonClick = function(e){
+	e.preventDefault();
+	if ($(this).data('record_at')) { // 已經有錄了
+		var delta = ((new Date).getTime() - $('#record').data('record_at')) / 1000;
+		$(this).data('record_length', delta);
+		$(this).data('record_at', null);
+		$(this).text('按我錄音');
+		recorder.stop();
+	} else {
+		$(this).data('record_at', new Date);
+		$('#replay').hide();
+		$(this).text('結束錄音');
+		recorder.start();
+	}
+};
+
+var onRecordingReady = function(e){
+	if (e.data.size == 0) {
+        alert('錄音失敗，請確認是否有接麥克風');
+        return;
+}
+console.log(e.data);
+    var reader = new FileReader();
+    reader.addEventListener("loadend", function() {
+       // reader.result contains the contents of blob as a typed array
+        $('[name="record_data"]').val(btoa(reader.result.toString()));
+    });
+    reader.readAsBinaryString(e.data);
+    $('#replay-audio')[0].src = URL.createObjectURL(e.data);
+    $('[name="record_length"]').val($('#record').data('record_length') * 1000);
+	$('#replay').show();
+	$('#record-time').text('錄音完成，錄音長度 ' + $('#record').data('record_length').toPrecision(2) + ' 秒');
+};
+
+$('#replay').click(function(e){
+	e.preventDefault();
+	$('#replay-audio')[0].play();
+});
+
+window.onload = function () {
+  recordButton = document.getElementById('record');
+
+  // get audio stream from user's mic
+  navigator.mediaDevices.getUserMedia({
+    audio: true
+  })
+  .then(function (stream) {
+    recordButton.disabled = false;
+    recordButton.addEventListener('click', recordButtonClick);
+    recorder = new MediaRecorder(stream);
+
+    // listen to dataavailable, which gets triggered whenever we have
+    // an audio blob available
+    recorder.addEventListener('dataavailable', onRecordingReady);
+  });
+};
+
+</script>
+<?php } else { ?>
+您需要有 g0v slack 帳號並在這邊登入才可以錄自介喔。<br>
+註冊帳號請按<a href="https://join.g0v.tw">這裡</a><br>
+已經有 slack 帳號請按<a href="/login/">登入</a><br>
+<?php } ?>
+<hr>
+<h2>其他人的自介</h2>
+<ul class="thumbnails">
+    <?php foreach (Intro::search(array('event' => $this->event->id))->order('created_at ASC') as $intro) { ?>
+    <?php $data = json_decode($intro->data) ?>
+    <li class="span2">
+    <div class="thumbnail">
+        <img src="<?= $this->escape($data->avatar) ?>" width="128" height="128" alt="">
+            <h3><?= $this->escape($data->display_name) ?></h3>
+            <p><?= $this->escape($data->keyword) ?></p>
+            <?php if ($data->has_voice) { ?>
+            <p><a href="#" class="btn btn-primary play-voice" data-id="<?= $intro->id ?>">播放自介</a></p>
+            <?php } ?>
+    </li>
+    <?php } ?>
+</ul>
+<script>
+$('.play-voice').click(function(e){
+    e.preventDefault();
+    $.get('/event/getintrovoice?id=' + $(this).data('id'), function(ret){
+        var audio_dom = $('<audio></audio>');
+        audio_dom[0].src = 'data:audio/webm;codecs=opus;base64,' + ret.data;
+        audio_dom[0].play();
+    }, 'json');
+});
+</script>
+<?= $this->partial('common/footer.phtml', $this) ?>
