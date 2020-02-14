@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>g0ver 自我介紹</title>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.2/bootstrap.min.js"></script>
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.2/css/bootstrap.css">
 </head>
@@ -15,6 +15,18 @@
             <li>
             <a href="/">Home</a>
             </li>
+            <?php if (!$this->user) { ?>
+            <li>
+            <a href="/login/">登入</a>
+            </li>
+            <?php } else { ?>
+			<li class="dropdown">
+			<a data-toggle="dropdown" class="dropdown-toggle" href="#">Hi! <?= $this->escape($this->user->name) ?><b class="caret"></b></a>
+			<ul class="dropdown-menu">
+				<li class="divider"></li>
+				<li><a href="/login/logout">登出</a></li>
+			</ul>
+            <?php } ?>
         </ul>
     </div>
 </div>
