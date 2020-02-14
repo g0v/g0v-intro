@@ -55,7 +55,7 @@ class LoginController extends Pix_Controller
         Pix_Session::set('user_id', $user_id);
         Pix_Session::set('user_name', $obj->user->name);
 		Pix_Session::set('access_token', $access_token);
-		Pix_Session::set('image', $obj->image_512);
+        Pix_Session::set('image', $obj->user->image_512);
 
         return $this->redirect('/');
     }
