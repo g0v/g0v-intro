@@ -20,7 +20,7 @@ class EventController extends Pix_Controller
         }
         $this->view->event = $event;
         if ($this->view->user) {
-            $this->view->intro = Intro::search(array('event' => $event->id, 'created_by' => $this->view->user->name))->first();
+            $this->view->intro = Intro::search(array('event' => $event->id, 'created_by' => $this->view->user->id))->first();
             if ($this->view->intro) {
                 $this->view->intro_voice = IntroVoice::find($this->view->intro->id);
             }
@@ -48,7 +48,7 @@ class EventController extends Pix_Controller
             return $this->alert("must login", '/');
         }
 
-        if ($intro = Intro::search(array('event' => $id, 'created_by' => $this->view->user->name))->first()) {
+        if ($intro = Intro::search(array('event' => $id, 'created_by' => $this->view->user->id))->first()) {
             $intro->update(array(
                 'data' => json_encode(array(
                     'display_name' => $_POST['display_name'],
@@ -61,7 +61,7 @@ class EventController extends Pix_Controller
             $intro = Intro::insert(array(
                 'event' => $id,
                 'created_at' => time(),
-                'created_by' => $this->view->user->name,
+                'created_by' => $this->view->user->id,
                 'data' => json_encode(array(
                     'display_name' => $_POST['display_name'],
                     'keyword' => $_POST['keyword'],
