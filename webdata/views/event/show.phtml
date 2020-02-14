@@ -119,7 +119,7 @@ window.onload = function () {
 <?php } else { ?>
 您需要有 g0v slack 帳號並在這邊登入才可以錄自介喔。<br>
 註冊帳號請按<a href="https://join.g0v.tw">這裡</a><br>
-已經有 slack 帳號請按<a href="/login/">登入</a><br>
+已經有 slack 帳號請按<a href="/login/?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>">登入</a><br>
 <?php } ?>
 <hr>
 <h2>其他人的自介</h2>

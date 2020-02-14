@@ -17,14 +17,14 @@
             </li>
             <?php if (!$this->user) { ?>
             <li>
-            <a href="/login/">登入</a>
+            <a href="/login/?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>">登入</a>
             </li>
             <?php } else { ?>
 			<li class="dropdown">
 			<a data-toggle="dropdown" class="dropdown-toggle" href="#">Hi! <?= $this->escape($this->user->name) ?><b class="caret"></b></a>
 			<ul class="dropdown-menu">
 				<li class="divider"></li>
-				<li><a href="/login/logout">登出</a></li>
+                <li><a href="/login/logout?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>">登出</a></li>
 			</ul>
             <?php } ?>
         </ul>

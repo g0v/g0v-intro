@@ -20,7 +20,7 @@ class LoginController extends Pix_Controller
             urlencode($client_id), // client_id
             'identity.basic,identity.avatar', // scope
             urlencode($redirect_uri), // redirect_uri
-            "read", // state
+            $_GET['next'], // state
             "" // team
         );
         return $this->redirect($url);
@@ -44,6 +44,7 @@ class LoginController extends Pix_Controller
         if (!$obj->ok) {
             return $this->alert($obj->error, '/');
         }
+        $next = $_GET['state'];
         $access_token = $obj->access_token;
         $user_id = $obj->user_id;
         $url = sprintf('https://slack.com/api/users.identity?token=%s', urlencode($access_token));
@@ -57,7 +58,7 @@ class LoginController extends Pix_Controller
 		Pix_Session::set('access_token', $access_token);
         Pix_Session::set('image', $obj->user->image_512);
 
-        return $this->redirect('/');
+        return $this->redirect($next);
     }
 
     public function logoutAction()
@@ -66,6 +67,10 @@ class LoginController extends Pix_Controller
         Pix_Session::set('user_name', '');
         Pix_Session::set('access_token', '');
         Pix_Session::set('image', '');
-        return $this->redirect('/');
+        if ($_GET['next']) {
+            return $this->redirect($_GET['next']);
+        } else {
+            return $this->redirect('/');
+        }
     }
 }
