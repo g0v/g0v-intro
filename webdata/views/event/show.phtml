@@ -54,8 +54,25 @@ setInterval(function(){
 	}
 }, 100);
 
+var perm_asked = false;
 var recordButtonClick = function(e){
 	e.preventDefault();
+    if (!perm_asked) {
+      // get audio stream from user's mic
+      navigator.mediaDevices.getUserMedia({
+        audio: true
+      })
+      .then(function (stream) {
+        recorder = new MediaRecorder(stream);
+
+        // listen to dataavailable, which gets triggered whenever we have
+        // an audio blob available
+        recorder.addEventListener('dataavailable', onRecordingReady);
+        $('#record').click();
+      });
+      perm_asked = true;
+      return;
+    }
 	if ($(this).data('record_at')) { // 已經有錄了
 		var delta = ((new Date).getTime() - $('#record').data('record_at')) / 1000;
 		$(this).data('record_length', delta);
@@ -75,7 +92,6 @@ var onRecordingReady = function(e){
         alert('錄音失敗，請確認是否有接麥克風');
         return;
 }
-console.log(e.data);
     var reader = new FileReader();
     reader.addEventListener("loadend", function() {
        // reader.result contains the contents of blob as a typed array
@@ -95,20 +111,8 @@ $('#replay').click(function(e){
 
 window.onload = function () {
   recordButton = document.getElementById('record');
+  recordButton.addEventListener('click', recordButtonClick);
 
-  // get audio stream from user's mic
-  navigator.mediaDevices.getUserMedia({
-    audio: true
-  })
-  .then(function (stream) {
-    recordButton.disabled = false;
-    recordButton.addEventListener('click', recordButtonClick);
-    recorder = new MediaRecorder(stream);
-
-    // listen to dataavailable, which gets triggered whenever we have
-    // an audio blob available
-    recorder.addEventListener('dataavailable', onRecordingReady);
-  });
 };
 
 </script>
