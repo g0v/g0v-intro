@@ -16,7 +16,7 @@ class LoginController extends Pix_Controller
         $client_id = getenv('SLACK_CLIENT_ID');
         $redirect_uri = 'https://' . getenv('SLACK_CALLBACK_HOST') . '/login/callback';
 
-        $url = sprintf("https://slack.com/oauth/authorize?client_id=%s&scope=%s&redirect_uri=%s&state=%s&team=%s",
+        $url = sprintf("https://g0v-tw.slack.com/oauth/authorize?client_id=%s&scope=%s&redirect_uri=%s&state=%s&team=%s",
             urlencode($client_id), // client_id
             'identity.basic,identity.avatar', // scope
             urlencode($redirect_uri), // redirect_uri
