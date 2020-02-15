@@ -6,11 +6,14 @@
 <form method="post" action="/event/saveintro/<?= $this->event->id ?>">
 <input type="hidden" name="record_data" value="">
 <input type="hidden" name="record_length" value="">
-Slack 帳號：<?= $this->escape($this->user->name) ?><br>
-<?php if (!$this->intro) { ?>
-顯示頭像：<img src="<?= $this->escape(Pix_Session::get('image')) ?>" width="128" height="128"><br>
+Slack 帳號：<?= $this->escape(Pix_Session::get('account')) ?><br>
 <input type="hidden" name="avatar" value="<?= $this->escape(Pix_Session::get('image')) ?>">
-顯示名稱：<input type="text" name="display_name" value="<?= $this->escape($this->user->name) ?>"><br>
+<input type="hidden" name="account" value="<?= $this->escape(Pix_Session::get('account')) ?>">
+<input type="hidden" name="display_name" value="<?= $this->user->name ?>">
+顯示頭像：<img src="<?= $this->escape(Pix_Session::get('image')) ?>" width="128" height="128"><br>
+顯示名稱：<?= $this->escape($this->user->name) ?><br>
+(若想變更頭像或是顯示名稱，請至 slack 變更並在這邊重新登入)<br>
+<?php if (!$this->intro) { ?>
 三個關鍵字：<input type="text" name="keyword"><br>
 錄音：<button id="record">按我錄音</button>
 <button id="replay" style="display:none">按我聽錄音</button>
@@ -18,9 +21,6 @@ Slack 帳號：<?= $this->escape($this->user->name) ?><br>
 <span id="record-time">(目前沒有錄音，若不錄音將會以語音念出您的三個關鍵字）</span><br>
 <?php } else { ?>
 <?php $data = json_decode($this->intro->data) ?>
-顯示頭像：<img src="<?= $this->escape($data->avatar) ?>" width="128" height="128"><br>
-<input type="hidden" name="avatar" value="<?= $this->escape($data->avatar) ?>">
-顯示名稱：<input type="text" name="display_name" value="<?= $this->escape($data->display_name) ?>"><br>
 三個關鍵字：<input type="text" name="keyword" value="<?= $this->escape($data->keyword) ?>"><br>
 錄音：<button id="record">按我錄音</button>
 <button id="replay" style="display:none">按我聽錄音</button>
@@ -129,11 +129,12 @@ window.onload = function () {
     <li class="span2">
     <div class="thumbnail">
         <img src="<?= $this->escape($data->avatar) ?>" width="128" height="128" alt="">
-            <h3><?= $this->escape($data->display_name) ?></h3>
-            <p><?= $this->escape($data->keyword) ?></p>
-            <?php if ($data->has_voice) { ?>
-            <p><a href="#" class="btn btn-primary play-voice" data-id="<?= $intro->id ?>">播放自介</a></p>
-            <?php } ?>
+        <h3>@<?= $this->escape($data->account) ?></h3>
+        顯示名稱：<?= $this->escape($data->display_name) ?><br>
+        <p>關鍵字：<?= $this->escape($data->keyword) ?></p>
+        <?php if ($data->has_voice) { ?>
+        <p><a href="#" class="btn btn-primary play-voice" data-id="<?= $intro->id ?>">播放自介</a></p>
+        <?php } ?>
     </li>
     <?php } ?>
 </ul>

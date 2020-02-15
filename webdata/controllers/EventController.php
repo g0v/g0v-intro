@@ -52,6 +52,7 @@ class EventController extends Pix_Controller
             $intro->update(array(
                 'data' => json_encode(array(
                     'display_name' => $_POST['display_name'],
+                    'account' => $_POST['account'],
                     'keyword' => $_POST['keyword'],
                     'avatar' => $_POST['avatar'],
                     'has_voice' => $_POST['record_data'] ? 1 : 0,
@@ -64,6 +65,7 @@ class EventController extends Pix_Controller
                 'created_by' => $this->view->user->id,
                 'data' => json_encode(array(
                     'display_name' => $_POST['display_name'],
+                    'account' => $_POST['account'],
                     'keyword' => $_POST['keyword'],
                     'avatar' => $_POST['avatar'],
                     'has_voice' => $_POST['record_data'] ? 1 : 0,
