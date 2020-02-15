@@ -58,12 +58,17 @@ var perm_asked = false;
 var recordButtonClick = function(e){
 	e.preventDefault();
     if (!perm_asked) {
+        if ('undefined' === typeof(MediaRecorder)) {
+            alert('iPhone 不支援錄音功能，請更換非 iOS 系統（電腦或是 Android 系統）');
+            return;
+      }
       // get audio stream from user's mic
       navigator.mediaDevices.getUserMedia({
         audio: true
       })
       .then(function (stream) {
         recorder = new MediaRecorder(stream);
+         
 
         // listen to dataavailable, which gets triggered whenever we have
         // an audio blob available
