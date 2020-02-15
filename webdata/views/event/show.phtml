@@ -131,7 +131,7 @@ window.onload = function () {
         <img src="<?= $this->escape($data->avatar) ?>" width="128" height="128" alt="">
         <h3>@<?= $this->escape($data->account) ?></h3>
         顯示名稱：<?= $this->escape($data->display_name) ?><br>
-        <p>關鍵字：<?= $this->escape($data->keyword) ?></p>
+        <p style="word-wrap: break-word; ">關鍵字：<?= $this->escape($data->keyword) ?></p>
         <?php if ($data->has_voice) { ?>
         <p><a href="#" class="btn btn-primary play-voice" data-id="<?= $intro->id ?>">播放自介</a></p>
         <?php } ?>
