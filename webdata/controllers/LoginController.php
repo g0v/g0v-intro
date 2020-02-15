@@ -56,7 +56,7 @@ class LoginController extends Pix_Controller
         Pix_Session::set('user_name', $obj->user->name);
         Pix_Session::set('image', $obj->user->image_512);
 
-        $url = sprintf('https://slack.com/api/users.info?token=%s&user=%s', urlencode($access_token), urlencode($user_id));
+        $url = sprintf('https://slack.com/api/users.info?token=%s&user=%s', urlencode(getenv('SLACK_ACCESS_TOKEN')), urlencode($user_id));
         $obj = json_decode(file_get_contents($url));
         if (!$obj->ok) {
             return $this->alert($obj->error, '/');
