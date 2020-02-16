@@ -1,4 +1,6 @@
 <?= $this->partial('common/header.phtml', $this) ?>
+<script src="https://cdn.jsdelivr.net/npm/opus-media-recorder@latest/OpusMediaRecorder.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/opus-media-recorder@latest/encoderWorker.umd.js"></script>
 <h1>活動：<?= $this->escape($this->event->name) ?></h1>
 <hr>
 <h2>我要錄自介</h2>
@@ -58,16 +60,20 @@ var perm_asked = false;
 var recordButtonClick = function(e){
 	e.preventDefault();
     if (!perm_asked) {
-        if ('undefined' === typeof(MediaRecorder)) {
-            alert('iPhone 不支援錄音功能，請更換非 iOS 系統（電腦或是 Android 系統）');
-            return;
-      }
       // get audio stream from user's mic
       navigator.mediaDevices.getUserMedia({
         audio: true
       })
       .then(function (stream) {
-        recorder = new MediaRecorder(stream);
+        workerOptions = {};
+        if ('undefined' === typeof(MediaRecorder)) {
+            workerOptions = {
+                OggOpusEncoderWasmPath: 'https://cdn.jsdelivr.net/npm/opus-media-recorder@latest/OggOpusEncoder.wasm',
+                WebMOpusEncoderWasmPath: 'https://cdn.jsdelivr.net/npm/opus-media-recorder@latest/WebMOpusEncoder.wasm'
+        };
+        window.MediaRecorder = OpusMediaRecorder;
+      }
+        recorder = new MediaRecorder(stream, {}, workerOptions);
          
 
         // listen to dataavailable, which gets triggered whenever we have
