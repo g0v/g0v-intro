@@ -3,32 +3,31 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>g0ver 自我介紹</title>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.2/bootstrap.min.js"></script>
-<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.2/css/bootstrap.css">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.css">
 </head>
 <body class="<?= $this->escape($this->body_class) ?>">
-<div class="navbar">
-    <div class="navbar-inner">
-        <a class="brand" href="/">g0ver 自我介紹</a>
-        <ul class="nav">
-            <li>
-            <a href="/">Home</a>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="/">g0ver 自我介紹</a>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+            <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
             </li>
             <?php if (!$this->user) { ?>
-            <li>
+            <li class="nav-item">
             <a href="/login/?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>">登入</a>
             </li>
             <?php } else { ?>
-			<li class="dropdown">
-			<a data-toggle="dropdown" class="dropdown-toggle" href="#">Hi! <?= $this->escape($this->user->name) ?><b class="caret"></b></a>
-			<ul class="dropdown-menu">
-				<li class="divider"></li>
-                <li><a href="/login/logout?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>">登出</a></li>
-			</ul>
+            <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hi! <?= $this->escape($this->user->name) ?></a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="/login/logout?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>">登出</a>
+			</div>
             <?php } ?>
         </ul>
     </div>
-</div>
+</nav>
 <div class="container-fluid">
     <div class="row-fluid">

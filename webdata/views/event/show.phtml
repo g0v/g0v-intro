@@ -132,23 +132,26 @@ recordButton.addEventListener('click', recordButtonClick);
 <?php } ?>
 <hr>
 <h2>其他人的自介</h2>
-<ul class="thumbnails">
+<div class="card-deck">
     <?php foreach (Intro::search(array('event' => $this->event->id))->order('created_at ASC') as $intro) { ?>
     <?php $data = json_decode($intro->data) ?>
-    <li class="span2">
-    <div class="thumbnail">
-        <img src="<?= $this->escape($data->avatar) ?>" width="128" height="128" alt="">
-        <h3>@<?= $this->escape($data->account) ?></h3>
-        顯示名稱：<?= $this->escape($data->display_name) ?><br>
-        <p style="word-wrap: break-word; ">關鍵字：<?= $this->escape($data->keyword) ?></p>
+    <div class="card">
+        <img class="card-img" src="<?= $this->escape($data->avatar) ?>" alt="">
+        <div class="card-body">
+        <h3 class="card-title">@<?= $this->escape($data->account) ?></h3>
+        <p class="card-text">顯示名稱：<?= $this->escape($data->display_name) ?></p>
+        <p class="card-text" style="word-wrap: break-word; ">關鍵字：<?= $this->escape($data->keyword) ?></p>
+        </div>
+        <div class="card-footer">
         <?php if ($data->voice_path) { ?>
         <p><a href="#" class="btn btn-primary play-voice" data-path="<?= $this->escape($data->voice_path) ?>" data-id="<?= $intro->id ?>">播放自介</a></p>
         <?php } else { ?>
         <p><a href="#" class="btn btn-primary play-tts" data-text="<?= $this->escape($data->display_name . ' ' . $data->keyword) ?>">機器發音</a></p>
         <?php } ?>
-    </li>
+        </div>
+    </div>
     <?php } ?>
-</ul>
+</div>
 <script>
 $('.play-voice').click(function(e){
     e.preventDefault();
