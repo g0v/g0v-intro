@@ -6,6 +6,7 @@
 <form method="post" action="/event/saveintro/<?= $this->event->id ?>">
 <input type="hidden" name="record_data" value="">
 <input type="hidden" name="record_length" value="">
+<input type="hidden" name="record_type" value="">
 Slack 帳號：<?= $this->escape(Pix_Session::get('account')) ?><br>
 <input type="hidden" name="avatar" value="<?= $this->escape(Pix_Session::get('image')) ?>">
 <input type="hidden" name="account" value="<?= $this->escape(Pix_Session::get('account')) ?>">
@@ -26,13 +27,12 @@ Slack 帳號：<?= $this->escape(Pix_Session::get('account')) ?><br>
 <button id="replay" style="display:none">按我聽錄音</button>
 <audio id="replay-audio"></audio>
 <span id="record-time">(目前沒有錄音，若不錄音將會以語音念出您的三個關鍵字）</span><br>
-<?php if ($this->intro_voice) { ?>
+<?php if ($data->voice_path) { ?>
 <script>
-var record_data = <?= json_encode($this->intro_voice->voice) ?>;
-$('#replay-audio')[0].src = 'data:audio/webm;codecs=opus;base64,' + record_data;
-record_length = <?= intval($this->intro_voice->length) / 1000 ?>;
+$('#replay-audio')[0].src = 'https://g0v-intro.s3-ap-northeast-1.amazonaws.com/' + <?= json_encode($data->voice_path) ?>;
+record_length = <?= intval($data->voice_length) / 1000 ?>;
 $('[name="record_length"]').val(record_length * 1000);
-$('[name="record_data"]').val(record_data);
+$('[name="record_data"]').val('no-change:' +  <?= json_encode($data->voice_path) ?>);
 $('#replay').show();
 $('#record-time').text('有錄音記錄，錄音長度 ' + record_length.toPrecision(2) + ' 秒');
 
@@ -105,6 +105,7 @@ var onRecordingReady = function(e){
     reader.readAsBinaryString(e.data);
     $('#replay-audio')[0].src = URL.createObjectURL(e.data);
     $('[name="record_length"]').val($('#record').data('record_length') * 1000);
+    $('[name="record_type"]').val(e.data.type);
 	$('#replay').show();
 	$('#record-time').text('錄音完成，錄音長度 ' + $('#record').data('record_length').toPrecision(2) + ' 秒');
 };
@@ -114,11 +115,8 @@ $('#replay').click(function(e){
 	$('#replay-audio')[0].play();
 });
 
-window.onload = function () {
-  recordButton = document.getElementById('record');
-  recordButton.addEventListener('click', recordButtonClick);
-
-};
+recordButton = document.getElementById('record');
+recordButton.addEventListener('click', recordButtonClick);
 
 </script>
 <?php } else { ?>
@@ -137,8 +135,8 @@ window.onload = function () {
         <h3>@<?= $this->escape($data->account) ?></h3>
         顯示名稱：<?= $this->escape($data->display_name) ?><br>
         <p style="word-wrap: break-word; ">關鍵字：<?= $this->escape($data->keyword) ?></p>
-        <?php if ($data->has_voice) { ?>
-        <p><a href="#" class="btn btn-primary play-voice" data-id="<?= $intro->id ?>">播放自介</a></p>
+        <?php if ($data->voice_path) { ?>
+        <p><a href="#" class="btn btn-primary play-voice" data-path="<?= $this->escape($data->voice_path) ?>" data-id="<?= $intro->id ?>">播放自介</a></p>
         <?php } ?>
     </li>
     <?php } ?>
@@ -146,11 +144,9 @@ window.onload = function () {
 <script>
 $('.play-voice').click(function(e){
     e.preventDefault();
-    $.get('/event/getintrovoice?id=' + $(this).data('id'), function(ret){
-        var audio_dom = $('<audio></audio>');
-        audio_dom[0].src = 'data:audio/webm;codecs=opus;base64,' + ret.data;
-        audio_dom[0].play();
-    }, 'json');
+    var audio_dom = $('<audio></audio>');
+    audio_dom[0].src = 'https://g0v-intro.s3-ap-northeast-1.amazonaws.com/' + $(this).data('path');
+    audio_dom[0].play();
 });
 </script>
 <?= $this->partial('common/footer.phtml', $this) ?>

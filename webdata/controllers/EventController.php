@@ -48,44 +48,57 @@ class EventController extends Pix_Controller
             return $this->alert("must login", '/');
         }
 
+        $data = array(
+            'display_name' => $_POST['display_name'],
+            'account' => $_POST['account'],
+            'keyword' => $_POST['keyword'],
+            'avatar' => $_POST['avatar'],
+        );
+
+        if ($_POST['record_data']) {
+            if (strpos($_POST['record_data'], 'no-change:') === 0) {
+                $data['voice_path'] = explode(':', $_POST['record_data'], 2)[1];
+                $data['voice_length'] = intval($_POST['record_length']);
+            } else {
+                $tmpfile = tempnam('/tmp', 'tmp-file');
+                file_put_contents($tmpfile, base64_decode($_POST['record_data']));
+                $cmd = sprintf("ffmpeg -i %s %s", escapeshellarg($tmpfile), escapeshellarg($tmpfile . '.mp3'));
+                system($cmd, $return_var);
+                unlink($tmpfile);
+                if ($return_var) {
+                    throw new Exception("失敗");
+                }
+                $path = date('Ymd') . '/' . crc32(uniqid()) . '.mp3';
+                include(__DIR__ . '/../stdlibs/aws/aws-autoloader.php');
+                $s3 = new Aws\S3\S3Client([
+                    'region' => 'ap-northeast-1',
+                    'version' => 'latest',
+                ]);
+                $s3->putObject([
+                    'Bucket' => 'g0v-intro',
+                    'Key' => $path,
+                    'Body' => file_get_contents($tmpfile . '.mp3'),
+                    'ACL' => 'public-read',
+                    'ContentType' => 'audio/mpeg',
+                ]);
+                unlink($tmpfile . '.mp3');
+                $data['voice_path'] = $path;
+                $data['voice_length'] = intval($_POST['record_length']);
+            }
+        }
+
+
         if ($intro = Intro::search(array('event' => $id, 'created_by' => $this->view->user->id))->first()) {
             $intro->update(array(
-                'data' => json_encode(array(
-                    'display_name' => $_POST['display_name'],
-                    'account' => $_POST['account'],
-                    'keyword' => $_POST['keyword'],
-                    'avatar' => $_POST['avatar'],
-                    'has_voice' => $_POST['record_data'] ? 1 : 0,
-                )),
+                'data' => json_encode($data),
             ));
         } else {
             $intro = Intro::insert(array(
                 'event' => $id,
                 'created_at' => time(),
                 'created_by' => $this->view->user->id,
-                'data' => json_encode(array(
-                    'display_name' => $_POST['display_name'],
-                    'account' => $_POST['account'],
-                    'keyword' => $_POST['keyword'],
-                    'avatar' => $_POST['avatar'],
-                    'has_voice' => $_POST['record_data'] ? 1 : 0,
-                )),
+                'data' => json_encode($data),
             ));
-        }
-
-        if ($_POST['record_data']) {
-            if ($intro_voice = IntroVoice::find($intro->id)) {
-                $intro_voice->update(array(
-                    'voice' => strval($_POST['record_data']),
-                    'length' => intval($_POST['record_length']),
-                ));
-            } else {
-                IntroVoice::insert(array(
-                    'id' => $intro->id,
-                    'voice' => strval($_POST['record_data']),
-                    'length' => intval($_POST['record_length']),
-                ));
-            }
         }
 
         return $this->alert("自介儲存成功", "/event/show/{$id}");
