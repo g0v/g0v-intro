@@ -68,7 +68,7 @@ class EventController extends Pix_Controller
                 if ($return_var) {
                     throw new Exception("失敗");
                 }
-                $path = date('Ymd') . '/' . crc32(uniqid()) . '.mp3';
+                $path = date('Ymd') . '/' . $this->view->user->id . '-' . crc32(uniqid()) . '.mp3';
                 include(__DIR__ . '/../stdlibs/aws/aws-autoloader.php');
                 $s3 = new Aws\S3\S3Client([
                     'region' => 'ap-northeast-1',
