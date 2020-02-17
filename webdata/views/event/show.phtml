@@ -133,7 +133,10 @@ recordButton.addEventListener('click', recordButtonClick);
 <?php } ?>
 <hr>
 <h2>其他人的自介</h2>
-<div class="card-deck">
+<style>
+@media (min-width: 576px) {  .card-columns { column-count: 2; } } @media (min-width: 768px) { .card-columns {  column-count: 3; } }  @media (min-width: 992px) { .card-columns {  column-count: 4; } }  @media (min-width: 1200px) { .card-columns {  column-count: 5; } }
+</style>
+<div class="card-columns">
     <?php foreach (Intro::search(array('event' => $this->event->id))->order('created_at ASC') as $intro) { ?>
     <?php $data = json_decode($intro->data) ?>
     <div class="card">
