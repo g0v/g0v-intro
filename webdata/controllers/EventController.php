@@ -27,16 +27,6 @@ class EventController extends Pix_Controller
         }
     }
 
-    public function getintrovoiceAction()
-    {
-        if (!$intro_voice = IntroVoice::find(intval($_GET['id']))) {
-            return $this->json(false);
-        }
-        return $this->json(array(
-            'data' => $intro_voice->voice,
-        ));
-    }
-
     public function saveintroAction()
     {
         list(, /*event*/, /*saveintro*/, $id) = explode('/', $this->getURI());
