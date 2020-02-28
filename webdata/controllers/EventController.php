@@ -27,6 +27,58 @@ class EventController extends Pix_Controller
         }
     }
 
+    public function downloadcsvAction()
+    {
+        list(, /*event*/, /*downloadcsv*/, $id) = explode('/', $this->getURI());
+        if (!$event = Event::find(strval($id))) {
+            return $this->alert("{$id} not found", '/');
+        }
+
+        $output = fopen('php://output', 'w');
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="' . $id . '.csv"');
+        fputcsv($output, array(
+            'slack帳號', '顯示名稱', '關鍵字', '建立時間', '頭像位置', '自介錄音',
+        ));
+        foreach (Intro::search(array('event' => $id))->order('created_at ASC') as $intro) {
+            $data = json_decode($intro->data);
+            fputcsv($output, array(
+                $data->account,
+                $data->display_name,
+                $data->keyword,
+                date('c', $intro->created_at),
+                $data->avatar,
+                $data->voice_path,
+            ));
+        }
+        return $this->noview();
+    }
+
+    public function dataAction()
+    {
+        list(, /*event*/, /*data*/, $id) = explode('/', $this->getURI());
+        if (!$event = Event::find(strval($id))) {
+            return $this->alert("{$id} not found", '/');
+        }
+
+        $ret = array();
+        foreach (Intro::search(array('event' => $id))->order('created_at ASC') as $intro) {
+            $data = json_decode($intro->data);
+            $obj = new StdClass;
+            $obj->created_at = $intro->created_at;
+            $obj->account = $data->account;
+            $obj->display_name = $data->display_name;
+            $obj->keyword = $data->keyword;
+            $obj->avatar = $data->avatar;
+            $obj->voice_path = $data->voice_path;
+            $ret[] = $obj;
+        }
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET');
+        return $this->json($ret);
+    }
+
+
     public function saveintroAction()
     {
         list(, /*event*/, /*saveintro*/, $id) = explode('/', $this->getURI());
