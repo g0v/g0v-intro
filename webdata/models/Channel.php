@@ -2,6 +2,27 @@
 
 class ChannelRow extends Pix_Table_Row
 {
+    public function canSee($user)
+    {
+        if ($user and $user->type == 2) {
+            return true; // admin can see all
+        }
+
+        if ($this->getData()->type == 1) {
+            return true; // channel is public
+        }
+
+        if ($user and in_array($user->slack_id, $channel->getData()->owners)) {
+            return true; // is owner
+        }
+
+        if ($user and in_array($user->slack_id, $channel->getData()->invite_list)) {
+            return true; // is invited
+        }
+
+        return false;
+    }
+
     public function getData()
     {
         return json_decode($this->data);
