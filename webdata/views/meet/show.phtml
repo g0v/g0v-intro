@@ -1,0 +1,26 @@
+<?= $this->partial('common/header.phtml', $this) ?>
+<h1><?= $this->escape($this->event->name) ?></h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>代稱</th>
+            <th>標題</th>
+            <th>描述</th>
+            <th>坑主</th>
+            <th>成員</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php foreach (Channel::search(array('event_id' => $this->event->id))->order('order ASC') as $channel) { ?>
+    <?php if (!$channel->canSee($this->user)) { continue; } ?>
+    <tr>
+        <td><?= $this->escape($channel->name) ?></td>
+        <td><?= $this->escape($channel->getStatus()->getMeta()->title) ?></td>
+        <td><?= $this->escape($channel->getStatus()->getMeta()->description) ?></td>
+        <td><?= $this->escape(User::toUsersString($channel->getData()->owners)) ?></td>
+    </tr>
+    <?php } ?>
+    </tbody>
+</table>
+<hr>
+<?= $this->partial('common/footer.phtml', $this) ?>
