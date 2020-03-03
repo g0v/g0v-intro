@@ -21,11 +21,21 @@
             <a href="/login/?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>">登入</a>
             </li>
             <?php } else { ?>
+            <?php if ($this->user->type == 2) { ?>
+            <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">管理者功能</a>
+            <div class="dropdown-menu" aria-labelledby="adminDropdown">
+                <a class="dropdown-item" href="/admin/event">活動管理</a>
+                <a class="dropdown-item" href="/admin/member">成員管理</a>
+			</div>
+            </li>
+            <?php } ?>
             <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hi! <?= $this->escape($this->user->account) ?></a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                 <a class="dropdown-item" href="/login/logout?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>">登出</a>
 			</div>
+            </li>
             <?php } ?>
         </ul>
     </div>

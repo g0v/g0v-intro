@@ -1,0 +1,25 @@
+<?= $this->partial('common/header.phtml', $this) ?>
+<h1>使用者名單</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>帳號</th>
+            <th>顯示名稱</th>
+            <th>最近登入</th>
+            <th>身份</th>
+            <th>動作</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php foreach (User::search(1) as $user) { ?>
+    <tr>
+        <td><?= $this->escape($user->account) ?></td>
+        <td><?= $this->escape($user->getDisplayName()) ?></td>
+        <td><?= date('c', $user->logined_at) ?></td>
+        <td><?= ['參與者', '坑主', '管理者'][$user->type] ?></td>
+        <td></td>
+    </tr>
+    <?php } ?>
+    </tbody>
+</table>
+<?= $this->partial('common/footer.phtml', $this) ?>

@@ -1,0 +1,25 @@
+<?= $this->partial('common/header.phtml', $this) ?>
+<h1>活動列表</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>活動ID</th>
+            <th>活動名稱</th>
+            <th>建立時間</th>
+            <th>狀態</th>
+            <th>動作</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php foreach (Event::search(1) as $event) { ?>
+    <tr>
+        <td><?= $this->escape($event->id) ?></td>
+        <td><?= $this->escape($event->name) ?></td>
+        <td><?= date('c', $event->created_at) ?></td>
+        <td><?= ['收集中', '已結束'][$event->status] ?></td>
+        <td></td>
+    </tr>
+    <?php } ?>
+    </tbody>
+</table>
+<?= $this->partial('common/footer.phtml', $this) ?>
