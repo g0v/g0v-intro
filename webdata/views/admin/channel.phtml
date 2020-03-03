@@ -1,3 +1,17 @@
+<?php
+
+$orders = array();
+foreach (Channel::search(array('event_id' => $this->event->id))->order('order ASC') as $channel) {
+    if (!count($orders)) {
+        $orders[$channel->order] = '最前面';
+    } else {
+        $orders[$channel->order] = "{$prev_channel->name} 後面";
+    }
+    $prev_channel = $channel;
+}
+$orders[$prev_channel->order + 1] = "{$prev_channel->name} 後面";
+
+?>
 <?= $this->partial('common/header.phtml', $this) ?>
 <h1>頻道管理：<?= $this->event->id ?></h1>
 <table class="table">
@@ -8,6 +22,7 @@
             <th>描述</th>
             <th>種類</th>
             <th>坑主</th>
+            <th>順序</th>
             <th>動作</th>
         </tr>
     </thead>
@@ -19,6 +34,18 @@
         <td><?= $this->escape($channel->getStatus()->getMeta()->description) ?></td>
         <td><?= ["","公開","邀請"][$channel->getData()->type] ?></td>
         <td><?= $this->escape(User::toUsersString($channel->getData()->owners)) ?></td>
+        <td>
+            <form method="post" action="/admin/channelorder?channel_id=<?= $channel->channel_id ?>">
+                <input type="hidden" name="sToken" value="<?= Session::getStoken() ?>">
+                <?= $channel->order ?>
+                <select name="order">
+                    <?php foreach ($orders as $pos => $name) { ?>
+                    <option value="<?= $pos ?>" <?= $pos == $channel->order ? ' selected="selected"': '' ?>><?= $this->escape($name) ?></option>
+                    <?php } ?>
+                </select>
+                <button type="submit">移動</button>
+            </form>
+        </td>
         <td>
             <a href="/admin/channel?event_id=<?= urlencode($this->event->id) ?>&channel_id=<?= intval($channel->channel_id) ?>">編輯</a>
         </td>

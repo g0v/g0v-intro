@@ -95,4 +95,37 @@ class AdminController extends Pix_Controller
         ));
         return $this->alert('ok', '/admin/channel?event_id=' . urlencode($event->id) . '&channel_id=' . intval($channel->channel_id));
     }
+
+    public function channelorderAction()
+    {
+        if ($_POST['sToken'] != Session::getStoken()) {
+            return $this->alert('sToken error', '/admin/event');
+        }
+        if (!array_key_exists('channel_id', $_GET) or !$channel = Channel::find($_GET['channel_id'])) {
+            return $this->alert('channel not found', '/admin/event');
+        }
+        $channels1 = array();
+        $channels2 = array();
+
+        foreach (Channel::search(array('event_id' => $channel->event_id))->order('order ASC') as $current_channel) {
+            if ($current_channel->channel_id == $channel->channel_id) {
+                continue;
+            }
+            if ($current_channel->order < $_POST['order']) {
+                $channels1[] = $current_channel;
+            } else {
+                $channels2[] = $current_channel;
+            }
+        }
+        foreach (array_merge($channels1, array($channel), $channels2) as $order => $c) {
+            if ($c->order != $order) {
+                $c->update(array(
+                    'order' => $order,
+                    'updated_at' => time(),
+                ));
+            }
+        }
+
+        return $this->alert('ok', "/admin/channel?event_id=" . urlencode($channel->event_id));
+    }
 }
