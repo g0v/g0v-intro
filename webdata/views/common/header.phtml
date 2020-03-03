@@ -22,7 +22,7 @@
             </li>
             <?php } else { ?>
             <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hi! <?= $this->escape($this->user->name) ?></a>
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hi! <?= $this->escape($this->user->account) ?></a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                 <a class="dropdown-item" href="/login/logout?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>">登出</a>
 			</div>

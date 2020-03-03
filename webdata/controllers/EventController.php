@@ -4,10 +4,7 @@ class EventController extends Pix_Controller
 {
     public function init()
     {
-        if (Pix_Session::get('user_name')) {
-            $user = new StdClass;
-            $user->name = Pix_Session::get('user_name');
-            $user->id = Pix_Session::get('user_id');
+        if ($user_id = Pix_Session::get('user_id') and $user = User::find($user_id)) {
             $this->view->user = $user;
         }
     }
@@ -20,7 +17,7 @@ class EventController extends Pix_Controller
         }
         $this->view->event = $event;
         if ($this->view->user) {
-            $this->view->intro = Intro::search(array('event' => $event->id, 'created_by' => $this->view->user->id))->first();
+            $this->view->intro = Intro::search(array('event' => $event->id, 'created_by' => $this->view->user->slack_id))->first();
             if ($this->view->intro) {
                 $this->view->intro_voice = IntroVoice::find($this->view->intro->id);
             }
@@ -110,7 +107,7 @@ class EventController extends Pix_Controller
                 if ($return_var) {
                     throw new Exception("失敗");
                 }
-                $path = date('Ymd') . '/' . $this->view->user->id . '-' . crc32(uniqid()) . '.mp3';
+                $path = date('Ymd') . '/' . $this->view->user->slack_id . '-' . crc32(uniqid()) . '.mp3';
                 include(__DIR__ . '/../stdlibs/aws/aws-autoloader.php');
                 $s3 = new Aws\S3\S3Client([
                     'region' => 'ap-northeast-1',
@@ -130,7 +127,7 @@ class EventController extends Pix_Controller
         }
 
 
-        if ($intro = Intro::search(array('event' => $id, 'created_by' => $this->view->user->id))->first()) {
+        if ($intro = Intro::search(array('event' => $id, 'created_by' => $this->view->user->slack_id))->first()) {
             $intro->update(array(
                 'data' => json_encode($data),
             ));
@@ -138,7 +135,7 @@ class EventController extends Pix_Controller
             $intro = Intro::insert(array(
                 'event' => $id,
                 'created_at' => time(),
-                'created_by' => $this->view->user->id,
+                'created_by' => $this->view->user->slack_id,
                 'data' => json_encode($data),
             ));
         }

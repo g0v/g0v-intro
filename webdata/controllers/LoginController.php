@@ -61,11 +61,25 @@ class LoginController extends Pix_Controller
         }
         $account = $obj->user->profile->display_name;
 
-        Pix_Session::set('image', $obj->user->profile->image_512);
-        Pix_Session::set('user_name', $obj->user->real_name);
+        if (!$u = User::find($user_id)) {
+            $u = User::insert(array(
+                'slack_id' => $user_id,
+                'account' => $account,
+                'type' => 2,
+                'created_at' => time(),
+                'logined_at' => time(),
+                'data' => '',
+            ));
+        }
+        $u->update(array(
+            'logined_at' => time(),
+            'data' => json_encode(array(
+                'display_name' => $obj->user->real_name,
+                'image' => $obj->user->profile->image_512,
+            )),
+        ));
+
         Pix_Session::set('user_id', $user_id);
-        Pix_Session::set('account', $account);
-		Pix_Session::set('access_token', $access_token);
 
         return $this->redirect($next);
     }
@@ -73,9 +87,6 @@ class LoginController extends Pix_Controller
     public function logoutAction()
     {
         Pix_Session::set('user_id', '');
-        Pix_Session::set('user_name', '');
-        Pix_Session::set('access_token', '');
-        Pix_Session::set('image', '');
         if ($_GET['next']) {
             return $this->redirect($_GET['next']);
         } else {

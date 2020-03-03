@@ -9,12 +9,12 @@
 <input type="hidden" name="record_data" value="">
 <input type="hidden" name="record_length" value="">
 <input type="hidden" name="record_type" value="">
-Slack 帳號：<?= $this->escape(Pix_Session::get('account')) ?><br>
-<input type="hidden" name="avatar" value="<?= $this->escape(Pix_Session::get('image')) ?>">
-<input type="hidden" name="account" value="<?= $this->escape(Pix_Session::get('account')) ?>">
-<input type="hidden" name="display_name" value="<?= $this->user->name ?>">
-顯示頭像：<img src="<?= $this->escape(Pix_Session::get('image')) ?>" width="128" height="128"><br>
-顯示名稱：<?= $this->escape($this->user->name) ?><br>
+Slack 帳號：<?= $this->escape($this->user->account) ?><br>
+<input type="hidden" name="avatar" value="<?= $this->escape($this->user->getImage()) ?>">
+<input type="hidden" name="account" value="<?= $this->escape($this->user->account) ?>">
+<input type="hidden" name="display_name" value="<?= $this->escape($this->user->getDisplayName()) ?>">
+顯示頭像：<img src="<?= $this->escape($this->user->getImage()) ?>" width="128" height="128"><br>
+顯示名稱：<?= $this->escape($this->user->getDisplayName()) ?><br>
 <div class="alert alert-primary" role="alert">
     (若想變更頭像或是顯示名稱，請至 slack 變更並在這邊重新登入)
 </div>
