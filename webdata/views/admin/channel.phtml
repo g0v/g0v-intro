@@ -19,7 +19,8 @@ $orders[$prev_channel->order + 1] = "{$prev_channel->name} 後面";
         <tr>
             <th>代稱</th>
             <th>標題</th>
-            <th>描述</th>
+            <th>共筆連結</th>
+            <th>Jitsi房間</th>
             <th>種類</th>
             <th>坑主</th>
             <th>順序</th>
@@ -31,7 +32,14 @@ $orders[$prev_channel->order + 1] = "{$prev_channel->name} 後面";
     <tr>
         <td><?= $this->escape($channel->name) ?></td>
         <td><?= $this->escape($channel->getStatus()->getMeta()->title) ?></td>
-        <td><?= $this->escape($channel->getStatus()->getMeta()->description) ?></td>
+        <td>
+            <?php if ($hackmd = $channel->getStatus()->getMeta()->hackmd) { ?>
+            <a href="<?= $this->escape($channel->getStatus()->getMeta()->hackmd) ?>" target="_blank">連結</a>
+            <?php } else { ?>
+            無
+            <?php } ?>
+        </td>
+        <td><?= $this->escape($channel->getStatus()->getMeta()->jitsi_room) ?></td>
         <td><?= ["","公開","邀請"][$channel->getData()->type] ?></td>
         <td><?= $this->escape(User::toUsersString($channel->getData()->owners)) ?></td>
         <td>
@@ -61,7 +69,8 @@ $orders[$prev_channel->order + 1] = "{$prev_channel->name} 後面";
     <input type="hidden" name="sToken" value="<?= Session::getStoken() ?>">
     代稱：<input type="text" name="name" value="<?= $this->escape($this->channel->name) ?>">(如主頻道、次頻道1、短講頻道...等，坑主無法自行修改)<br>
     標題：<input type="text" name="title" value="<?= $this->escape($this->channel->getStatus()->getMeta()->title) ?>">頻道標題，坑主可修改<br>
-    描述：<textarea name="description"><?= $this->escape($this->channel->getStatus()->getMeta()->description) ?></textarea><br>
+    共筆連結：<input type="text" name="hackmd" value="<?= $this->escape($this->channel->getStatus()->getMeta()->hackmd) ?>"><br>
+    Jitsi房間：<input type="text" name="jitsi_room" value="<?= $this->escape($this->channel->getStatus()->getMeta()->jitsi_room) ?>"><br>
     (頻道描述，可以放連結和詳細說明，坑主可自行修改）<br>
     坑主：<input type="text" name="owners" value="<?= $this->escape(User::toUsersString($this->channel->getData()->owners)) ?>">(輸入slack id ，可以用逗點分開，不用加 @)<br>
     <?php $type = $this->channel->getData()->type ?>
@@ -78,7 +87,8 @@ $orders[$prev_channel->order + 1] = "{$prev_channel->name} 後面";
     <input type="hidden" name="sToken" value="<?= Session::getStoken() ?>">
     代稱：<input type="text" name="name">(如主頻道、次頻道1、短講頻道...等，坑主無法自行修改)<br>
     標題：<input type="text" name="title">頻道標題，坑主可修改<br>
-    描述：<textarea name="description"></textarea><br>
+    共筆連結：<input type="text" name="hackmd"></textarea><br>
+    Jitsi房間：<input type="text" name="jitsi_room"></textarea><br>
     (頻道描述，可以放連結和詳細說明，坑主可自行修改）<br>
     坑主：<input type="text" name="owners">(輸入slack id ，可以用逗點分開，不用加 @)<br>
     種類：<select name="type">

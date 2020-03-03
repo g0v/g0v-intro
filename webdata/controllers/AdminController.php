@@ -86,7 +86,8 @@ class AdminController extends Pix_Controller
         $status = $channel->getStatus();
         $status->updateMeta(array(
             'title' => $_POST['title'],
-            'description' => $_POST['description'],
+            'hackmd' => $_POST['hackmd'],
+            'jitsi_room' => $_POST['jitsi_room'],
         ));
         $channel->updateData(array(
             'owners' => User::parseUsers($_POST['owners']),
