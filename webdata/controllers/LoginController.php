@@ -65,7 +65,7 @@ class LoginController extends Pix_Controller
             $u = User::insert(array(
                 'slack_id' => $user_id,
                 'account' => $account,
-                'type' => 2,
+                'type' => 0,
                 'created_at' => time(),
                 'logined_at' => time(),
                 'data' => '',

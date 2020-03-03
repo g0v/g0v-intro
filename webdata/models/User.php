@@ -27,7 +27,7 @@ class User extends Pix_Table
 
         $this->_columns['slack_id'] = array('type' => 'varchar', 'size' => 32);
         $this->_columns['account'] = array('type' => 'varchar', 'size' => 32);
-        // 0 - admin, 1 - proposer, 2 - member
+        // 0 - member, 1 - proposer, 2 - admin 
         $this->_columns['type'] = array('type' => 'int');
         $this->_columns['created_at'] = array('type' => 'int');
         $this->_columns['logined_at'] = array('type' => 'int');
