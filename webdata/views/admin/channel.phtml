@@ -1,0 +1,64 @@
+<?= $this->partial('common/header.phtml', $this) ?>
+<h1>頻道管理：<?= $this->event->id ?></h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>代稱</th>
+            <th>標題</th>
+            <th>描述</th>
+            <th>種類</th>
+            <th>坑主</th>
+            <th>動作</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php foreach (Channel::search(array('event_id' => $this->event->id))->order('order ASC') as $channel) { ?>
+    <tr>
+        <td><?= $this->escape($channel->name) ?></td>
+        <td><?= $this->escape($channel->getStatus()->getMeta()->title) ?></td>
+        <td><?= $this->escape($channel->getStatus()->getMeta()->description) ?></td>
+        <td><?= ["","公開","邀請"][$channel->getData()->type] ?></td>
+        <td><?= $this->escape(User::toUsersString($channel->getData()->owners)) ?></td>
+        <td>
+            <a href="/admin/channel?event_id=<?= urlencode($this->event->id) ?>&channel_id=<?= intval($channel->channel_id) ?>">編輯</a>
+        </td>
+    </tr>
+    <?php } ?>
+    </tbody>
+</table>
+<hr>
+<?php if ($this->channel) { ?>
+<h1>編輯頻道 <?= $this->escape($this->channel->name) ?></h1>
+<form method="post" action="/admin/editchannel?event_id=<?= urlencode($this->event->id) ?>&channel_id=<?= intval($this->channel->channel_id) ?>">
+    <input type="hidden" name="sToken" value="<?= Session::getStoken() ?>">
+    代稱：<input type="text" name="name" value="<?= $this->escape($this->channel->name) ?>">(如主頻道、次頻道1、短講頻道...等，坑主無法自行修改)<br>
+    標題：<input type="text" name="title" value="<?= $this->escape($this->channel->getStatus()->getMeta()->title) ?>">頻道標題，坑主可修改<br>
+    描述：<textarea name="description"><?= $this->escape($this->channel->getStatus()->getMeta()->description) ?></textarea><br>
+    (頻道描述，可以放連結和詳細說明，坑主可自行修改）<br>
+    坑主：<input type="text" name="owners" value="<?= $this->escape(User::toUsersString($this->channel->getData()->owners)) ?>">(輸入slack id ，可以用逗點分開，不用加 @)<br>
+    <?php $type = $this->channel->getData()->type ?>
+    種類：<select name="type">
+        <option value="1" <?= $type == 1 ? ' selected="selected"': '' ?>>公開</option>
+        <option value="2" <?= $type == 2 ? ' selected="selected"': '' ?>>邀請</option>
+    </select>(邀請只有在名單中才能加入)<br>
+    邀請名單：<input type="text" name="invite_list" value="<?= $this->escape(User::toUsersString($this->channel->getData()->invite_list)) ?>"><br>
+    <button type="submit">修改</button>
+</form>
+<?php } else { ?>
+<h1>新增頻道</h1>
+<form method="post" action="/admin/editchannel?event_id=<?= urlencode($this->event->id) ?>">
+    <input type="hidden" name="sToken" value="<?= Session::getStoken() ?>">
+    代稱：<input type="text" name="name">(如主頻道、次頻道1、短講頻道...等，坑主無法自行修改)<br>
+    標題：<input type="text" name="title">頻道標題，坑主可修改<br>
+    描述：<textarea name="description"></textarea><br>
+    (頻道描述，可以放連結和詳細說明，坑主可自行修改）<br>
+    坑主：<input type="text" name="owners">(輸入slack id ，可以用逗點分開，不用加 @)<br>
+    種類：<select name="type">
+        <option value="1">公開</option>
+        <option value="2">邀請</option>
+    </select>(邀請只有在名單中才能加入)<br>
+    邀請名單：<input type="text" name="invite_list"><br>
+    <button type="submit">新增</button>
+</form>
+<?php } ?>
+<?= $this->partial('common/footer.phtml', $this) ?>
