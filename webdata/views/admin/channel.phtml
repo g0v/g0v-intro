@@ -29,6 +29,7 @@
 <hr>
 <?php if ($this->channel) { ?>
 <h1>編輯頻道 <?= $this->escape($this->channel->name) ?></h1>
+<a href="/admin/channel?event_id=<?= urlencode($this->event->id ) ?>">新增頻道</a>
 <form method="post" action="/admin/editchannel?event_id=<?= urlencode($this->event->id) ?>&channel_id=<?= intval($this->channel->channel_id) ?>">
     <input type="hidden" name="sToken" value="<?= Session::getStoken() ?>">
     代稱：<input type="text" name="name" value="<?= $this->escape($this->channel->name) ?>">(如主頻道、次頻道1、短講頻道...等，坑主無法自行修改)<br>
