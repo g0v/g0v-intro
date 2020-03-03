@@ -17,9 +17,38 @@
         <td><?= $this->escape($event->name) ?></td>
         <td><?= date('c', $event->created_at) ?></td>
         <td><?= ['收集中', '已結束'][$event->status] ?></td>
-        <td></td>
+        <td>
+            <a href="/admin/event?event_id=<?= urlencode($event->id) ?>">編輯</a>
+            <a href="/admin/channel?event_id=<?= urlencode($event->id) ?>">頻道管理</a>
+        </td>
     </tr>
     <?php } ?>
     </tbody>
 </table>
+<hr>
+<?php if ($this->event) { ?>
+<h1>編輯活動</h1>
+<form method="post" action="/admin/editevent?event_id=<?= urlencode($this->event->id) ?>">
+    <input type="hidden" name="sToken" value="<?= Session::getStoken() ?>">
+    活動代碼：<input type="text" name="id" value="<?= $this->escape($this->event->id) ?>"><br>
+    活動名稱：<input type="text" name="name" value="<?= $this->escape($this->event->name) ?>"><br>
+    活動狀態：<select name="status">
+        <option value="0" <?= $this->event->status == 0 ? 'selected="selected"' : '' ?>>收集中</option>
+        <option value="1" <?= $this->event->status == 1 ? 'selected="selected"' : '' ?>>結束</option>
+    </select><br>
+    <button type="submit">修改</button>
+</form>
+<?php } else { ?>
+<h1>新增活動</h1>
+<form method="post" action="/admin/editevent">
+    <input type="hidden" name="sToken" value="<?= Session::getStoken() ?>">
+    活動代碼：<input type="text" name="id" value=""><br>
+    活動名稱：<input type="text" name="name" value=""><br>
+    活動狀態：<select name="status">
+        <option value="0">收集中</option>
+        <option value="1">結束</option>
+    </select><br>
+    <button type="submit">新增</button>
+</form>
+<?php } ?>
 <?= $this->partial('common/footer.phtml', $this) ?>
