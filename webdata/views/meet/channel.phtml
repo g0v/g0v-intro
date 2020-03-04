@@ -9,6 +9,7 @@ body, div.container-fluid {
 #feature-area {
     position: fixed;
     top: 62px;
+	width: 80%;
 }
 #member-area {
     position: fixed;
@@ -19,6 +20,28 @@ body, div.container-fluid {
     border: 1px solid black;
     text-align: center;
 }
+
+#member-list .v-1,.v-2,.v-3,.v-4,.v-5 {
+	opacity: 0%;
+	position: absolute;
+	left: 0px;
+}
+#member-list .v-1 {
+	top: 0px;
+}
+#member-list .v-2 {
+	top: 20px;
+}
+#member-list .v-3 {
+	top: 40px;
+}
+#member-list .v-4 {
+	top: 60px;
+}
+#member-list .v-5 {
+	top: 80px;
+}
+
 #member-list {
     overflow-x: hidden;
     overflow-y: auto;
@@ -91,6 +114,9 @@ html {
             <label class="custom-control-label" for="auth-screen">螢幕分享</label>
         </div>
         </li>
+        <li class="list-group-item" id="attach-audio-area">
+			<a id="attach-audio-button" href="#">沒聲音?</a>
+        </li>
     </ul>
 </div>
 <div id="main-area">
@@ -98,7 +124,6 @@ html {
         <iframe src="https://g0v.hackmd.io/@jothon/hsiaothon/" style="width: 100%; height: 100%"></iframe>
     </div>
     <div id="main-area-video" style="width: 100%; height: 100%; display:none; ">
-        <video id="track-video" autoplay="1" style="width: 100%; height: 100%"></video>
     </div>
 </div>
 <div id="member-area">
@@ -114,6 +139,11 @@ html {
 <i class="microphone-status fas fa-microphone-alt"></i>
 <i class="video-status fas fa-video"></i>
 </span>
+<span class="v-all v-1 v-a"><i class="fas fa-circle"></i></span>
+<span class="v-all v-2 v-b"><i class="fas fa-circle"></i></span>
+<span class="v-all v-3 v-c"><i class="fas fa-circle"></i></span>
+<span class="v-all v-4 v-b"><i class="fas fa-circle"></i></span>
+<span class="v-all v-5 v-a"><i class="fas fa-circle"></i></span>
 </div>
 </script>
 <div id="member-list"></div><!-- #member-list -->
@@ -160,6 +190,18 @@ function onLocalTracks(tracks) {
     }
 }
 
+var has_audio = false;
+$('#attach-audio-button').click(function(e){
+	// workaround...
+	e.preventDefault();
+	if ($('audio.remote').length) {
+		var track = $('audio.remote').data('track');
+		if (track) {
+			track.attach($('audio.remote')[0]);
+		}
+	}
+});
+
 /**
  * Handles remote tracks
  * @param track JitsiTrack object
@@ -172,7 +214,22 @@ function onRemoteTrack(track) {
 
     if (track.getType() === 'video') {
         videoTracks[participant] = track;
-    }
+    } else {
+		if (!$(`#member-${participant} audio`).length) {
+			$(`#member-${participant}`).append('<audio autoplay="1" class="remote" />');
+		}
+
+		if (old_track = $(`#member-${participant} audio`).data('track')) {
+			old_track.detach($(`#member-${participant} audio`)[0]);
+		}
+		track.attach($(`#member-${participant} audio`)[0]);
+		$(`#member-${participant} audio`).data('track', track);
+		if (room.participants[participant].isAudioMuted()) {
+			$(`#member-${participant} .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+		} else {
+			$(`#member-${participant} .microphone-status`).removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
+		}
+	}
 }
 
 /**
@@ -248,6 +305,32 @@ function onConferenceJoined() {
             }
         }
     }
+    room.on(
+        JitsiMeetJS.events.conference.TRACK_AUDIO_LEVEL_CHANGED,
+        (participant, audioLevel) => {
+			if (audioLevel > 0) {
+				has_audio = true;
+				$('#attach-audio-area').hide();
+			}
+			
+			$(`#member-${participant} .v-all`).css('opacity', '0%');
+			if (audioLevel >= 1.0) {
+				$(`#member-${participant} .v-a`).css('opacity', '100%');
+			} else if (audioLevel > 0.8) {
+				$(`#member-${participant} .v-a`).css('opacity', '50%');
+			}
+			if (audioLevel > 0.6) {
+				$(`#member-${participant} .v-b`).css('opacity', '100%');
+			} else if (audioLevel > 0.4) {
+				$(`#member-${participant} .v-b`).css('opacity', '50%');
+			}
+			if (audioLevel > 0.2) {
+				$(`#member-${participant} .v-c`).css('opacity', '100%');
+			} else if (audioLevel > 0.01) {
+				$(`#member-${participant} .v-c`).css('opacity', '50%');
+			}
+	});
+
     room.on(JitsiMeetJS.events.conference.USER_JOINED, (id, user) => {
         update_member_list(true);
     });
@@ -293,6 +376,7 @@ function onConnectionSuccess() {
     room.on(
         JitsiMeetJS.events.conference.CONFERENCE_JOINED,
         onConferenceJoined);
+
     room.on(JitsiMeetJS.events.conference.TRACK_MUTE_CHANGED, track => {
 		var id = track.ownerEndpointId;
 		if (track.muted) {
@@ -335,7 +419,7 @@ $(window).bind('unload', unload);
 
 JitsiMeetJS.setLogLevel(JitsiMeetJS.logLevels.ERROR);
 const initOptions = {
-    disableAudioLevels: true,
+    disableAudioLevels: false,
 
     // The ID of the jidesha extension for Chrome.
     desktopSharingChromeExtId: 'mbocklcggfhnbahlnepmldehdhpjfcjp',
@@ -376,6 +460,18 @@ $.get('/meet/data/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_enco
         disconnect);
 
     connection.connect();
+
+	if (JitsiMeetJS.mediaDevices.isDeviceChangeAvailable('output')) {
+		JitsiMeetJS.mediaDevices.enumerateDevices(devices => {
+			const audioOutputDevices
+				= devices.filter(d => d.kind === 'audiooutput');
+
+			if (audioOutputDevices.length >= 1) {
+				JitsiMeetJS.mediaDevices.setAudioOutputDevice(audioOutputDevices[0].deviceId);
+			}
+		});
+	}
+
 }, 'json');
 
 $('#auth-screen').change(function(e){
@@ -385,5 +481,6 @@ $('#auth-screen').change(function(e){
             throw error;
     });
 });
+
 </script>
 <?= $this->partial('common/footer.phtml', $this) ?>
