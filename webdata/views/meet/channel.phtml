@@ -1,5 +1,6 @@
 <?= $this->partial('/common/header.phtml', $this) ?>
 <script src="https://meet.jit.si/libs/lib-jitsi-meet.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" />
 <style>
 body, div.container-fluid {
     height: 100%;
@@ -33,6 +34,12 @@ body, div.container-fluid {
     height: 128px;
     border: 1px solid black;
 }
+.member-status {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+}
+
 .member-displayname {
     position: absolute;
     top: 105px;
@@ -103,6 +110,10 @@ html {
 <div class="member-nointro" style="display:none">無自介使用者</div>
 </div>
 <span class="member-displayname">Fellow Jitster</span>
+<span class="member-status">
+<i class="microphone-status fas fa-microphone-alt"></i>
+<i class="video-status fas fa-video"></i>
+</span>
 </div>
 </script>
 <div id="member-list"></div><!-- #member-list -->
@@ -190,6 +201,11 @@ var update_member_list = function(show_intro){
                 var member_box = $($('#tmpl-member-box').html());
                 member_box.attr('id', `member-${id}`);
                 member_box.attr('title', `member-${id}`);
+				if (participant.isAudioMuted()) {
+					$('.microphone-status', member_box).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+				} else {
+					$('.microphone-status', member_box).removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
+				}
                 $('#member-list').append(member_box);
             }
             $(`#member-${id}`).removeClass('checking');
@@ -278,7 +294,12 @@ function onConnectionSuccess() {
         JitsiMeetJS.events.conference.CONFERENCE_JOINED,
         onConferenceJoined);
     room.on(JitsiMeetJS.events.conference.TRACK_MUTE_CHANGED, track => {
-        console.log(`${track.getType()} - ${track.isMuted()}`);
+		var id = track.ownerEndpointId;
+		if (track.muted) {
+			$(`#member-${id} .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+		} else {
+			$(`#member-${id} .microphone-status`).removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
+		}
     });
     room.join();
 }
