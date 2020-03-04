@@ -14,7 +14,7 @@
     <?php foreach (Channel::search(array('event_id' => $this->event->id))->order('order ASC') as $channel) { ?>
     <?php if (!$channel->canSee($this->user)) { continue; } ?>
     <tr>
-        <td><?= $this->escape($channel->name) ?></td>
+        <td><a href="/meet/channel/<?= urlencode($this->event->id) ?>/<?= $channel->channel_id ?>"><?= $this->escape($channel->name) ?></a></td>
         <td><?= $this->escape($channel->getStatus()->getMeta()->title) ?></td>
         <td><?= $this->escape($channel->getStatus()->getMeta()->description) ?></td>
         <td><?= $this->escape(User::toUsersString($channel->getData()->owners)) ?></td>
