@@ -147,7 +147,23 @@ html {
 <span class="v-all v-5 v-a"><i class="fas fa-circle"></i></span>
 </div>
 </script>
-<div id="member-list"></div><!-- #member-list -->
+<div id="member-list">
+	<div class="member-box" id="member-me" style="display:none">
+	<div class="member-avatar">
+	<img class="member-image" src="" width="120" height="120">
+	</div>
+	<span class="member-displayname">Me</span>
+	<span class="member-status">
+		<i class="microphone-status fas fa-microphone-alt-slash"></i>
+		<i class="video-status fas fa-video-slash"></i>
+	</span>
+	<span class="v-all v-1 v-a"><i class="fas fa-circle"></i></span>
+	<span class="v-all v-2 v-b"><i class="fas fa-circle"></i></span>
+	<span class="v-all v-3 v-c"><i class="fas fa-circle"></i></span>
+	<span class="v-all v-4 v-b"><i class="fas fa-circle"></i></span>
+	<span class="v-all v-5 v-a"><i class="fas fa-circle"></i></span>
+	</div>
+</div><!-- #member-list -->
 </div><!-- #member-area -->
 <script>
 /* global $, JitsiMeetJS */
@@ -189,7 +205,15 @@ function onLocalTracks(tracks) {
     for (let i = 0; i < localTracks.length; i++) {
         if (localTracks[i].getType() === 'video') {
 			track_video_attach(localTracks[i]);
-        }
+        } else if (localTracks[i].getType() == 'audio') {
+			$('#member-me').data('audio-track', localTracks[i]);
+			$('#auth-microphone').prop('checked', true);
+			$('#member-me .microphone-status').removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
+			localTracks[i].addEventListener(JitsiMeetJS.events.track.TRACK_AUDIO_LEVEL_CHANGED, function(audioLevel) {
+				level_changed('me', audioLevel);
+			});
+			
+		}
         if (isJoined) {
             room.addTrack(localTracks[i]);
         }
@@ -250,6 +274,7 @@ var my_nickname = 'Fellow Jitster';
 
 var update_member_list = function(show_intro){
     $('.member-box').addClass('checking');
+	$('#member-me').removeClass('checking');
     var names = [];
     for (var id in room.participants) {
         var participant = room.participants[id];
@@ -301,6 +326,30 @@ var update_member_list = function(show_intro){
     }, 'json');
 };
 
+var level_changed = function(participant, audioLevel) {
+	if (audioLevel > 0) {
+		has_audio = true;
+		$('#attach-audio-area').hide();
+	}
+	
+	$(`#member-${participant} .v-all`).css('opacity', '0%');
+	if (audioLevel >= 1.0) {
+		$(`#member-${participant} .v-a`).css('opacity', '100%');
+	} else if (audioLevel > 0.8) {
+		$(`#member-${participant} .v-a`).css('opacity', '50%');
+	}
+	if (audioLevel > 0.6) {
+		$(`#member-${participant} .v-b`).css('opacity', '100%');
+	} else if (audioLevel > 0.4) {
+		$(`#member-${participant} .v-b`).css('opacity', '50%');
+	}
+	if (audioLevel > 0.2) {
+		$(`#member-${participant} .v-c`).css('opacity', '100%');
+	} else if (audioLevel > 0.01) {
+		$(`#member-${participant} .v-c`).css('opacity', '50%');
+	}
+};
+
 function onConferenceJoined() {
     room.setDisplayName(my_nickname);
     isJoined = true;
@@ -310,29 +359,8 @@ function onConferenceJoined() {
     update_member_list(true);
     room.on(
         JitsiMeetJS.events.conference.TRACK_AUDIO_LEVEL_CHANGED,
-        (participant, audioLevel) => {
-			if (audioLevel > 0) {
-				has_audio = true;
-				$('#attach-audio-area').hide();
-			}
-			
-			$(`#member-${participant} .v-all`).css('opacity', '0%');
-			if (audioLevel >= 1.0) {
-				$(`#member-${participant} .v-a`).css('opacity', '100%');
-			} else if (audioLevel > 0.8) {
-				$(`#member-${participant} .v-a`).css('opacity', '50%');
-			}
-			if (audioLevel > 0.6) {
-				$(`#member-${participant} .v-b`).css('opacity', '100%');
-			} else if (audioLevel > 0.4) {
-				$(`#member-${participant} .v-b`).css('opacity', '50%');
-			}
-			if (audioLevel > 0.2) {
-				$(`#member-${participant} .v-c`).css('opacity', '100%');
-			} else if (audioLevel > 0.01) {
-				$(`#member-${participant} .v-c`).css('opacity', '50%');
-			}
-	});
+		level_changed
+	);
 
     room.on(JitsiMeetJS.events.conference.USER_JOINED, (id, user) => {
         update_member_list(true);
@@ -456,6 +484,8 @@ var user_info = {};
 $.get('/meet/data/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_encode($this->channel->channel_id) ?>, function(ret){
     confOptions.confID = ret.meta.jitsi_room;
     my_nickname = ret.user.slack_id;
+	$('#member-me .member-image').attr('src', ret.user.avatar);
+	$('#member-me').show();
     $('#title').val(ret.meta.title);
 
     JitsiMeetJS.init(initOptions);
@@ -493,6 +523,31 @@ $('#auth-screen').change(function(e){
         .catch(error => {
             throw error;
     });
+});
+
+$('#auth-microphone').change(function(e){
+	e.preventDefault();
+
+	var audio_track = $('#member-me').data('audio-track');
+	if (!audio_track) {
+		JitsiMeetJS.createLocalTracks({ devices: [ 'audio' ] })
+			.then(onLocalTracks)
+			.catch(error => {
+				throw error;
+		});
+	} else {
+		if (audio_track.isMuted()) {
+			audio_track.unmute().then(function(){
+				$('#auth-microphone').prop('checked', true);
+				$(`#member-me .microphone-status`).removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
+			});
+		} else {
+			audio_track.mute().then(function(){
+				$('#auth-microphone').prop('checked', false);
+				$(`#member-me .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+			});
+		}
+	}
 });
 
 $('#member-list').on('click', '.member-box', function(e){
