@@ -142,4 +142,19 @@ class EventController extends Pix_Controller
 
         return $this->alert("自介儲存成功", "/event/show/{$id}");
     }
+
+    public function userinfoAction()
+    {
+        list(, /*event*/, /*userinfo*/, $event_id) = explode('/', $this->getURI());
+        $users = explode(',', trim($_GET['users']));
+        $ret = new StdClass;
+        $ret->error = false;
+        $ret->data = new StdClass;
+        if ($users) {
+            foreach (Intro::search(array('event' => $event_id))->searchIn('created_by', $users) as $intro) {
+                $ret->data->{$intro->created_by} = json_decode($intro->data);
+            }
+        }
+        return $this->json($ret);
+    }
 }
