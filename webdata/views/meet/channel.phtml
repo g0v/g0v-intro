@@ -9,7 +9,7 @@ body, div.container-fluid {
 #feature-area {
     position: fixed;
     top: 62px;
-	width: 80%;
+	width: 90%;
 }
 #member-area {
     position: fixed;
@@ -93,37 +93,38 @@ html {
 </style>
 <div id="feature-area">
     <h1 style="display: inline; float: left; width: 40%"><input type="text" id="title" value="" readonly="readonly"  style="width: 100%"></h1>
-    <ul class="list-group list-group-horizontal">
-        <li class="list-group-item"><a href="#">共筆</a></li>
-        <li class="list-group-item"><a href="#">影音畫面</a></li>
-        <li class="list-group-item">
+	<div class="list-group list-group-horizontal">
+		<a href="#" class="list-group-item active main-switch" id="main-switch-hackmd">共筆</a>
+		<a href="#" class="list-group-item main-switch" id="main-switch-video">影音畫面</a>
+        <div class="list-group-item">
         <div class="custom-control custom-switch" style="float: left">
             <input type="checkbox" class="custom-control-input" id="auth-microphone">
             <label class="custom-control-label" for="auth-microphone">麥克風</label>
         </div>
-        </li>
-        <li class="list-group-item">
+        </div>
+        <div class="list-group-item">
         <div class="custom-control custom-switch" style="float: left">
             <input type="checkbox" class="custom-control-input" id="auth-camera">
             <label class="custom-control-label" for="auth-camera">攝影機</label>
         </div>
-        </li>
-        <li class="list-group-item">
+        </div>
+        <div class="list-group-item">
         <div class="custom-control custom-switch" style="float: left">
             <input type="checkbox" class="custom-control-input" id="auth-screen">
             <label class="custom-control-label" for="auth-screen">螢幕分享</label>
         </div>
-        </li>
-        <li class="list-group-item" id="attach-audio-area">
+        </div>
+        <div class="list-group-item" id="attach-audio-area">
 			<a id="attach-audio-button" href="#">沒聲音?</a>
-        </li>
-    </ul>
+        </div>
+    </div>
 </div>
 <div id="main-area">
-    <div id="main-area-hackmd" style="width: 100%; height: 100%">
+	<div class="main-area-section" id="main-area-hackmd" style="width: 100%; height: 100%">
         <iframe src="https://g0v.hackmd.io/@jothon/hsiaothon/" style="width: 100%; height: 100%"></iframe>
     </div>
-    <div id="main-area-video" style="width: 100%; height: 100%; display:none; ">
+    <div class="main-area-section" id="main-area-video" style="width: 100%; height: 100%; display:none; ">
+		<video autoplay="1" style="width: 100%; height: 100%" id="track-video"></video>
     </div>
 </div>
 <div id="member-area">
@@ -172,7 +173,12 @@ let isJoined = false;
 let room = null;
 
 let localTracks = [];
-videoTracks = {};
+function track_video_attach(track) {
+	if (old_track = $('#track-video').data('track')) {
+		old_track.detach($('#track-video')[0]);
+	}
+	track.attach($('#track-video')[0]);
+};
 
 /**
  * Handles local tracks.
@@ -182,7 +188,7 @@ function onLocalTracks(tracks) {
     localTracks = tracks;
     for (let i = 0; i < localTracks.length; i++) {
         if (localTracks[i].getType() === 'video') {
-            localTracks[i].attach($('#track-video')[0]);
+			track_video_attach(localTracks[i]);
         }
         if (isJoined) {
             room.addTrack(localTracks[i]);
@@ -213,7 +219,12 @@ function onRemoteTrack(track) {
     const participant = track.getParticipantId();
 
     if (track.getType() === 'video') {
-        videoTracks[participant] = track;
+		$(`#member-${participant}`).data('video-track', track);
+		if (room.participants[participant].isVideoMuted()) {
+			$(`#member-${participant} .video-status`).removeClass('fa-video').addClass('fa-video-slash');
+		} else {
+			$(`#member-${participant} .video-status`).removeClass('fa-video-slash').addClass('fa-video');
+		}
     } else {
 		if (!$(`#member-${participant} audio`).length) {
 			$(`#member-${participant}`).append('<audio autoplay="1" class="remote" />');
@@ -297,14 +308,6 @@ function onConferenceJoined() {
         room.addTrack(localTracks[i]);
     }
     update_member_list(true);
-    for (var id in room.participants) {
-        for (var track_id in room.participants[id].tracks) {
-            var track = room.participants[id].tracks[track_id];
-            if (track.getType() == 'video') {
-                videoTracks[id] = track;
-            }
-        }
-    }
     room.on(
         JitsiMeetJS.events.conference.TRACK_AUDIO_LEVEL_CHANGED,
         (participant, audioLevel) => {
@@ -337,10 +340,6 @@ function onConferenceJoined() {
     room.on(JitsiMeetJS.events.conference.DOMINANT_SPEAKER_CHANGED, (id) => {
         $('.member-box').removeClass('member-talking');
         $(`#member-${id}`).addClass('member-talking');
-
-        if ('undefined' !== typeof(videoTracks[id])) {
-            videoTracks[id].attach($('#track-video')[0]);
-        }
     });
     room.on(JitsiMeetJS.events.conference.USER_LEFT, (id, user) => {
         onUserLeft(id);
@@ -358,10 +357,6 @@ function onConferenceJoined() {
  * @param id
  */
 function onUserLeft(id) {
-    if ('undefined' !== typeof(videoTracks[id])) {
-        videoTracks[id].detach($('#track-video')[0]);
-        delete(videoTracks[id]);
-    }
 }
 
 /**
@@ -379,10 +374,18 @@ function onConnectionSuccess() {
 
     room.on(JitsiMeetJS.events.conference.TRACK_MUTE_CHANGED, track => {
 		var id = track.ownerEndpointId;
-		if (track.muted) {
-			$(`#member-${id} .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+		if (track.getType() == 'video') {
+			if (track.muted) {
+				$(`#member-${id} .video-status`).removeClass('fa-video').addClass('fa-video-slash');
+			} else {
+				$(`#member-${id} .video-status`).removeClass('fa-video-slash').addClass('fa-video');
+			}
 		} else {
-			$(`#member-${id} .microphone-status`).removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
+			if (track.muted) {
+				$(`#member-${id} .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+			} else {
+				$(`#member-${id} .microphone-status`).removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
+			}
 		}
     });
     room.join();
@@ -411,6 +414,16 @@ function unload() {
     room.leave();
     connection.disconnect();
 }
+
+$('.main-switch').click(function(e){
+	e.preventDefault();
+	var tab = $(this).attr('id').split('-')[2];
+	$('.main-area-section').hide();
+	$('#main-area-' + tab).show();
+	$('.main-switch').removeClass('active');
+	$(this).addClass('active');
+	
+});
 
 let isVideo = true;
 
@@ -480,6 +493,14 @@ $('#auth-screen').change(function(e){
         .catch(error => {
             throw error;
     });
+});
+
+$('#member-list').on('click', '.member-box', function(e){
+	e.preventDefault();
+	var track = $(this).data('video-track');
+	if (track && !track.muted) {
+		track_video_attach(track);
+	}
 });
 
 </script>
