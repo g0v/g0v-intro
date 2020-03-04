@@ -3,31 +3,30 @@
 <script src="https://cdn.jsdelivr.net/npm/opus-media-recorder@latest/encoderWorker.umd.js"></script>
 <h1>活動：<?= $this->escape($this->event->name) ?></h1>
 <hr>
-<h2>我要錄自介</h2>
+<h2>我要錄自介 I want to record my intro</h2>
 <?php if ($this->user) { ?>
 <form method="post" action="/event/saveintro/<?= $this->event->id ?>">
 <input type="hidden" name="record_data" value="">
 <input type="hidden" name="record_length" value="">
 <input type="hidden" name="record_type" value="">
-Slack 帳號：<?= $this->escape(Pix_Session::get('account')) ?><br>
+Slack ID：<?= $this->escape(Pix_Session::get('account')) ?><br>
 <input type="hidden" name="avatar" value="<?= $this->escape(Pix_Session::get('image')) ?>">
 <input type="hidden" name="account" value="<?= $this->escape(Pix_Session::get('account')) ?>">
 <input type="hidden" name="display_name" value="<?= $this->user->name ?>">
-顯示頭像：<img src="<?= $this->escape(Pix_Session::get('image')) ?>" width="128" height="128"><br>
-顯示名稱：<?= $this->escape($this->user->name) ?><br>
+顯示頭像 Photo：<img src="<?= $this->escape(Pix_Session::get('image')) ?>" width="128" height="128"><br>
+顯示名稱 Name：<?= $this->escape($this->user->name) ?><br>
 <div class="alert alert-primary" role="alert">
-    (若想變更頭像或是顯示名稱，請至 slack 變更並在這邊重新登入)
-</div>
+    (若想變更頭像或是顯示名稱，請至 g0v Slack 變更，並在這邊重新登入。) If you want to change the photo or name, please do it on g0v Slack and back to refrech this page.</div>
 <div class="input-group">
     <div class="input-group-prepend">
-        <span class="input-group-text">三個關鍵字</span>
+        <span class="input-group-text">三個關鍵字 3 Keywords</span>
     </div>
     <input type="text" class="form-control" name="keyword">
 </div>
-錄音：<button id="record" class="btn btn-primary">按我錄音</button>
-<button id="replay" style="display:none" class="btn btn-primary">按我聽錄音</button>
+錄音 Record：<button id="record" class="btn btn-primary">按我錄音 Start</button>
+<button id="replay" style="display:none" class="btn btn-primary">按我聽錄音 Listen the recording</button>
 <audio id="replay-audio"></audio>
-<div id="record-time" class="alert alert-primary" role="alert">(目前沒有錄音，若不錄音將會以語音念出您的三個關鍵字）</div>
+<div id="record-time" class="alert alert-primary" role="alert">(目前沒有錄音，若不錄音將會以語音念出您的三個關鍵字） I don't have your recording so I can't speak for you.</div>
 <?php if ($this->intro) { ?>
 <?php $data = json_decode($this->intro->data) ?>
 <script>
@@ -127,13 +126,13 @@ recordButton.addEventListener('click', recordButtonClick);
 
 </script>
 <?php } else { ?>
-您需要有 g0v slack 帳號並在這邊登入才可以錄自介喔。<br>
-註冊帳號請按<a href="https://join.g0v.tw">這裡</a><br>
-已經有 slack 帳號請按<a href="/login/?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>">登入</a><br>
+您需要有 g0v Slack 帳號，才能在這裡錄自介喔。 You need to sign up on g0v Slack first.<br>
+註冊帳號請按 Sign up<a href="https://join.g0v.tw">這裡 HERE</a><br>
+已經有 g0v Slack 帳號請按 Or <a href="/login/?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>">登入 Sign In</a><br>
 <?php } ?>
 <hr>
-<h2>其他人的自介</h2>
-<a href="/event/downloadcsv/<?= $this->event->id ?>">下載成CSV</a>
+<h2>其他人的自介 g0ver's Intro</h2>
+<a href="/event/downloadcsv/<?= $this->event->id ?>">下載成 CSV Download as CSV</a>
 <a href="/event/data/<?= $this->event->id ?>">API</a>
 <style>
 @media (min-width: 576px) {  .card-columns { column-count: 2; } } @media (min-width: 768px) { .card-columns {  column-count: 3; } }  @media (min-width: 992px) { .card-columns {  column-count: 4; } }  @media (min-width: 1200px) { .card-columns {  column-count: 5; } }
@@ -145,14 +144,14 @@ recordButton.addEventListener('click', recordButtonClick);
         <img class="card-img" src="<?= $this->escape($data->avatar) ?>" alt="">
         <div class="card-body">
         <h3 class="card-title">@<?= $this->escape($data->account) ?></h3>
-        <p class="card-text">顯示名稱：<?= $this->escape($data->display_name) ?></p>
-        <p class="card-text" style="word-wrap: break-word; ">關鍵字：<?= $this->escape($data->keyword) ?></p>
+        <p class="card-text">顯示名稱 Display Name：<?= $this->escape($data->display_name) ?></p>
+        <p class="card-text" style="word-wrap: break-word; ">關鍵字 Keywords：<?= $this->escape($data->keyword) ?></p>
         </div>
         <div class="card-footer">
         <?php if ($data->voice_path) { ?>
-        <p><a href="#" class="btn btn-primary play-voice" data-path="<?= $this->escape($data->voice_path) ?>" data-id="<?= $intro->id ?>">播放自介</a></p>
+        <p><a href="#" class="btn btn-primary play-voice" data-path="<?= $this->escape($data->voice_path) ?>" data-id="<?= $intro->id ?>">播放自介 Recording</a></p>
         <?php } else { ?>
-        <p><a href="#" class="btn btn-primary play-tts" data-text="<?= $this->escape($data->display_name . ' ' . $data->keyword) ?>">機器發音</a></p>
+        <p><a href="#" class="btn btn-primary play-tts" data-text="<?= $this->escape($data->display_name . ' ' . $data->keyword) ?>">機器發音 Robot Speaking</a></p>
         <?php } ?>
         </div>
     </div>
