@@ -5,7 +5,7 @@
         <tr>
             <th>代稱</th>
             <th>標題</th>
-            <th>描述</th>
+            <th>共筆</th>
             <th>坑主</th>
             <th>成員</th>
         </tr>
@@ -16,8 +16,13 @@
     <tr>
         <td><a href="/meet/channel/<?= urlencode($this->event->id) ?>/<?= $channel->channel_id ?>"><?= $this->escape($channel->name) ?></a></td>
         <td><?= $this->escape($channel->getStatus()->getMeta()->title) ?></td>
-        <td><?= $this->escape($channel->getStatus()->getMeta()->description) ?></td>
+        <td>
+            <?php if ($hackmd = $channel->getStatus()->getMeta()->hackmd) { ?>
+            <a target="_blank" href="<?= $this->escape($hackmd) ?>">共筆</a>
+            <?php } ?>
+        </td>
         <td><?= $this->escape(User::toUsersString($channel->getData()->owners)) ?></td>
+        <td></td>
     </tr>
     <?php } ?>
     </tbody>
