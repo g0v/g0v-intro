@@ -250,6 +250,19 @@ $('#attach-audio-button').click(function(e){
 	}
 });
 
+function reportUserList()
+{
+    var users = [];
+    users.push([my_info.slack_id, room.getLocalParticipantProperty("login_at")]);
+    for (var id in room.participants) {
+        users.push([
+            room.participants[id].getProperty('slack_id'),
+            room.participants[id].getProperty('login_at')
+        ]);
+    }
+    $.post('/meet/reportuserlist/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_encode($this->channel->channel_id) ?>, 'data=' + encodeURIComponent(JSON.stringify(users)));
+}
+
 /**
  * Handles remote tracks
  * @param track JitsiTrack object
@@ -288,7 +301,6 @@ function onRemoteTrack(track) {
 /**
  * That function is executed when the conference is joined
  */
-var my_nickname = 'Fellow Jitster';
 
 var update_member_list = function(show_intro){
     $('.member-box').addClass('checking');
@@ -296,8 +308,8 @@ var update_member_list = function(show_intro){
     var names = [];
     for (var id in room.participants) {
         var participant = room.participants[id];
-        if (null !== participant.getDisplayName()) {
-            names.push(participant.getDisplayName());
+        if (null !== participant.getProperty('slack_id')) {
+            names.push(participant.getProperty('slack_id'));
         }
     }
 
@@ -320,8 +332,8 @@ var update_member_list = function(show_intro){
                 $('#member-list').append(member_box);
             }
             $(`#member-${id}`).removeClass('checking');
-            if (null !== participant.getDisplayName() && 'undefined' !== typeof(user_info[participant.getDisplayName()])) {
-                var info = user_info[participant.getDisplayName()];
+            if (null !== participant.getProperty('slack_id') && 'undefined' !== typeof(user_info[participant.getProperty('slack_id')])) {
+                var info = user_info[participant.getProperty('slack_id')];
                 $(`#member-${id} .member-displayname`).text(info.account);
                 $(`#member-${id} img`).attr('src', info.avatar);
                 $(`#member-${id} .member-image`).show();
@@ -369,12 +381,13 @@ var level_changed = function(participant, audioLevel) {
 };
 
 function onConferenceJoined() {
-    room.setDisplayName(my_nickname);
+    room.setDisplayName(my_info.account);
+    room.setLocalParticipantProperty('slack_id', my_info.slack_id);
+    room.setLocalParticipantProperty('login_at', (new Date()).getTime());
     isJoined = true;
-    for (let i = 0; i < localTracks.length; i++) {
-        room.addTrack(localTracks[i]);
-    }
     update_member_list(true);
+    reportUserList();
+    setTimeout(reportUserList, 60000);
     room.on(
         JitsiMeetJS.events.conference.TRACK_AUDIO_LEVEL_CHANGED,
 		level_changed
@@ -495,10 +508,11 @@ const initOptions = {
 };
 
 var user_info = {};
+var my_info;
 
 $.get('/meet/data/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_encode($this->channel->channel_id) ?>, function(ret){
     confOptions.confID = ret.meta.jitsi_room;
-    my_nickname = ret.user.slack_id;
+    my_info = ret.user;
 	$('#member-me .member-image').attr('src', ret.user.avatar);
 	$('#member-me').show();
     $('#title').val(ret.meta.title);
