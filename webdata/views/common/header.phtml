@@ -18,7 +18,7 @@
             </li>
             <?php if (!$this->user) { ?>
             <li class="nav-item">
-            <a href="/login/?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>">登入 Sign In</a>
+            <a class="nav-link" href="/login/?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>">登入 Sign In</a>
             </li>
             <?php } else { ?>
             <?php if ($this->user->type == 2) { ?>
