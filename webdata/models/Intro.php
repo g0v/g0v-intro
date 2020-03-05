@@ -13,6 +13,8 @@ class Intro extends Pix_Table
         $this->_columns['created_by'] = array('type' => 'varchar', 'size' => 32);
         $this->_columns['data'] = array('type' => 'text');
 
+        $this->_relations['user'] = array('rel' => 'has_one', 'type' => 'User', 'foreign_key' => 'created_by');
+
         $this->addIndex('event_time', array('event', 'created_at'));
         $this->addIndex('event_user', array('event', 'created_by'));
     }
