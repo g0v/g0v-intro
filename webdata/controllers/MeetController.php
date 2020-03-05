@@ -74,6 +74,8 @@ class MeetController extends Pix_Controller
             $ret->channels[$channel->channel_id] = array(
                 'channel_id' => $channel->channel_id,
                 'data' => $channel->getData(),
+                'order' => $channel->order,
+                'name' => $channel->name,
             );
             foreach ($ret->channels[$channel->channel_id]['data']->owners as $id) {
                 $users[$id] = true;

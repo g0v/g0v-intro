@@ -10,22 +10,62 @@
             <th>成員</th>
         </tr>
     </thead>
-    <tbody>
-    <?php foreach (Channel::search(array('event_id' => $this->event->id))->order('order ASC') as $channel) { ?>
-    <?php if (!$channel->canSee($this->user)) { continue; } ?>
-    <tr>
-        <td><a href="/meet/channel/<?= urlencode($this->event->id) ?>/<?= $channel->channel_id ?>"><?= $this->escape($channel->name) ?></a></td>
-        <td><?= $this->escape($channel->getStatus()->getMeta()->title) ?></td>
-        <td>
-            <?php if ($hackmd = $channel->getStatus()->getMeta()->hackmd) { ?>
-            <a target="_blank" href="<?= $this->escape($hackmd) ?>">共筆</a>
-            <?php } ?>
-        </td>
-        <td><?= $this->escape(User::toUsersString($channel->getData()->owners)) ?></td>
-        <td></td>
-    </tr>
-    <?php } ?>
-    </tbody>
+    <tbody id="channel-list"></tbody>
 </table>
-<hr>
+<script id="tmpl-channel-tr" type="text/html">
+<tr class="channel-tr">
+<td><a href="" class="channel-link"></a></td>
+<td class="channel-title"></td>
+<td><a href="" target="_blank" class="hackmd-link">HackMD</a></td>
+<td class="owner-list"></td>
+<td class="member-list"></td>
+</tr>
+</script>
+<script>
+var get_user_list = function(users, user_infos){
+    var div_dom = $('<div></div>');
+    var infos = {};
+    for (var user_info of user_infos) {
+        infos[user_info.slack_id] = user_info;
+    }
+
+    users.map(function(user){
+        div_dom.append($('<div></div>').addClass('card').css('float', 'left').append(
+            $('<img>').attr({src: infos[user].avatar, width:50, height:50})
+        ).append($('<span></span>').text(infos[user].account)));
+    });
+    return div_dom;
+};
+var update_channel_info = function(){
+    var event_id = <?= json_encode($this->event->id) ?>;
+    $.get('/meet/eventdata/' + event_id, function(ret){
+        $('.channel-tr').addClass('checking');
+        for (var channel of ret.channels) {
+            if (!$('#channel-' + channel.channel_id).length) {
+                var dom = $($('#tmpl-channel-tr').html());
+                dom.attr('id', 'channel-' + channel.channel_id);
+                $('#channel-list').append(dom);
+            }
+            var dom = $('#channel-' + channel.channel_id);
+            $('.channel-link', dom).attr('href', '/meet/channel/' + encodeURIComponent(event_id) + '/' + channel.channel_id).text(channel.name);
+            $('.channel-title', dom).text(channel.meta.title);
+            if ('' !== channel.meta.hackmd) {
+                $('.hackmd-link', dom).attr('href', channel.meta.hackmd).show();
+            } else {
+                $('.hackmd-link', dom).hide();
+            }
+            $('.owner-list', dom).html(get_user_list(channel.data.owners, ret.users));
+            $('.member-list', dom).html(get_user_list(channel.status.user_list.sort(function(a,b){ return a[1] - b[1]; }).map(function(a) { return a[0]; }), ret.users));
+            dom.removeClass('checking');
+            dom.data('order', channel.order);
+        }
+        $('.channel-tr.checking').remove();
+        $('.channel-tr').sort(function(a, b) {
+            return parseInt($(a).data('order')) - parseInt($(b).data('order'));
+        }).appendTo('#channel-list');
+    }, 'json');
+}
+setInterval(update_channel_info, 10000);
+update_channel_info();
+</script>
 <?= $this->partial('common/footer.phtml', $this) ?>
