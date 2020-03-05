@@ -3,6 +3,7 @@
 <table class="table">
     <thead>
         <tr>
+            <th>ID</th>
             <th>帳號</th>
             <th>顯示名稱</th>
             <th>最近登入</th>
@@ -13,6 +14,7 @@
     <tbody>
     <?php foreach (User::search(1) as $user) { ?>
     <tr>
+        <td><?= $this->escape($user->slack_id) ?></td>
         <td><?= $this->escape($user->account) ?></td>
         <td><?= $this->escape($user->getDisplayName()) ?></td>
         <td><?= date('c', $user->logined_at) ?></td>
