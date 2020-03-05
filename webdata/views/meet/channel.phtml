@@ -188,7 +188,6 @@ let connection = null;
 let isJoined = false;
 let room = null;
 
-let localTracks = [];
 function track_video_attach(track) {
 	if (old_track = $('#track-video').data('track')) {
 		old_track.detach($('#track-video')[0]);
@@ -196,26 +195,45 @@ function track_video_attach(track) {
 	track.attach($('#track-video')[0]);
 };
 
+function release_screen_track() {
+	var track = $('#member-me').data('screen-track');
+	if (track) {
+		track.dispose();
+		$('auth-screen').prop('checked', false);
+		$('#member-me').data('screen-track', null);
+	}
+}
+
 /**
  * Handles local tracks.
  * @param tracks Array with JitsiTrack objects
  */
 function onLocalTracks(tracks) {
-    localTracks = tracks;
-    for (let i = 0; i < localTracks.length; i++) {
-        if (localTracks[i].getType() === 'video') {
-			track_video_attach(localTracks[i]);
-        } else if (localTracks[i].getType() == 'audio') {
-			$('#member-me').data('audio-track', localTracks[i]);
+    for (let i = 0; i < tracks.length; i++) {
+        if (tracks[i].getType() === 'video') {
+			if (tracks[i].videoType == 'desktop') {
+				$('#member-me').data('screen-track', tracks[i]);
+				$('#member-me').data('video-track', tracks[i]);
+				$('#auth-screen').prop('checked', true);
+				$('#member-me .video-status').removeClass('fa-video-slash').addClass('fa-video');
+			} else {
+				release_screen_track();
+				$('#member-me').data('camera-track', tracks[i]);
+				$('#member-me').data('video-track', tracks[i]);
+				$('#auth-camera').prop('checked', true);
+				$('#member-me .video-status').removeClass('fa-video-slash').addClass('fa-video');
+			}
+        } else if (tracks[i].getType() == 'audio') {
+			$('#member-me').data('audio-track', tracks[i]);
 			$('#auth-microphone').prop('checked', true);
 			$('#member-me .microphone-status').removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
-			localTracks[i].addEventListener(JitsiMeetJS.events.track.TRACK_AUDIO_LEVEL_CHANGED, function(audioLevel) {
+			tracks[i].addEventListener(JitsiMeetJS.events.track.TRACK_AUDIO_LEVEL_CHANGED, function(audioLevel) {
 				level_changed('me', audioLevel);
 			});
 			
 		}
         if (isJoined) {
-            room.addTrack(localTracks[i]);
+            room.addTrack(tracks[i]);
         }
     }
 }
@@ -436,9 +454,6 @@ function disconnect() {
 }
 
 function unload() {
-    for (let i = 0; i < localTracks.length; i++) {
-        localTracks[i].dispose();
-    }
     room.leave();
     connection.disconnect();
 }
@@ -518,11 +533,58 @@ $.get('/meet/data/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_enco
 }, 'json');
 
 $('#auth-screen').change(function(e){
-    JitsiMeetJS.createLocalTracks({ devices: [ 'desktop' ] })
-        .then(onLocalTracks)
-        .catch(error => {
-            throw error;
-    });
+	e.preventDefault();
+
+	var screen_track = $('#member-me').data('screen-track');
+	if (!screen_track) {
+		JitsiMeetJS.createLocalTracks({ devices: [ 'desktop' ] })
+			.then(onLocalTracks)
+			.catch(error => {
+				throw error;
+		});
+	} else {
+		if (screen_track.isMuted()) {
+			screen_track.unmute().then(function(){
+				$('#auth-screen').prop('checked', true);
+				$('#auth-camera').prop('checked', false);
+				room.addTrack(screen_track);
+				$(`#member-me .video-status`).removeClass('fa-video-alt-slash').addClass('fa-video-alt');
+			});
+		} else {
+			screen_track.mute().then(function(){
+				release_screen_track();
+				$('#auth-screen').prop('checked', false);
+				$(`#member-me .video-status`).removeClass('fa-video-alt').addClass('fa-video-alt-slash');
+			});
+		}
+	}
+});
+
+$('#auth-camera').change(function(e){
+	e.preventDefault();
+
+	var camera_track = $('#member-me').data('camera-track');
+	if (!camera_track) {
+		JitsiMeetJS.createLocalTracks({ devices: [ 'video' ] })
+			.then(onLocalTracks)
+			.catch(error => {
+				throw error;
+		});
+	} else {
+		if (camera_track.isMuted()) {
+			camera_track.unmute().then(function(){
+				$('#auth-camera').prop('checked', true);
+				$('#auth-screen').prop('checked', false);
+				room.addTrack(camera_track);
+				$(`#member-me .video-status`).removeClass('fa-video-alt-slash').addClass('fa-video-alt');
+			});
+		} else {
+			camera_track.mute().then(function(){
+				$('#auth-video').prop('checked', false);
+				$(`#member-me .video-status`).removeClass('fa-video-alt').addClass('fa-video-alt-slash');
+			});
+		}
+	}
 });
 
 $('#auth-microphone').change(function(e){
