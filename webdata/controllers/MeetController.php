@@ -27,6 +27,9 @@ class MeetController extends Pix_Controller
         if (!$channel = Channel::find(intval($channel_id)) or $channel->event_id != $event_id) {
             return $this->alert("channel_id not found {$channel_id}", '/');
         }
+        if (!$this->view->user) {
+            return $this->alert("您需要登入才能進聊天室 You need to login first.", "/login?next=" . urlencode($this->getURI()));
+        }
         $this->view->event = $event;
         $this->view->channel = $channel;
     }
