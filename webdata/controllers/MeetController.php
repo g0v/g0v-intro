@@ -34,6 +34,24 @@ class MeetController extends Pix_Controller
         $this->view->channel = $channel;
     }
 
+    public function reportuserlistAction()
+    {
+        list(, /*meet*/, /*reportuserlist*/, $event_id, $channel_id) = explode('/', $this->getURI());
+        if (!$event = Event::find($event_id)) {
+            return $this->alert("event not found {$event_id}", '/');
+        }
+        if (!$channel = Channel::find(intval($channel_id)) or $channel->event_id != $event_id) {
+            return $this->alert("channel_id not found {$channel_id}", '/');
+        }
+        $users = json_decode($_POST['data']);
+        $channel->getStatus()->updateData(array(
+            'user_reported_by' => $this->view->user->slack_id,
+            'user_reported_at' => time(),
+            'user_list' => $users,
+        ));
+        return $this->json(true);
+    }
+
     public function dataAction()
     {
         list(, /*meet*/, /*channel*/, $event_id, $channel_id) = explode('/', $this->getURI());
