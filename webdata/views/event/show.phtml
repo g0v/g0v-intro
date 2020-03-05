@@ -10,9 +10,6 @@
 <input type="hidden" name="record_length" value="">
 <input type="hidden" name="record_type" value="">
 Slack ID：<?= $this->escape($this->user->account) ?><br>
-<input type="hidden" name="avatar" value="<?= $this->escape($this->user->getImage()) ?>">
-<input type="hidden" name="account" value="<?= $this->escape($this->user->account) ?>">
-<input type="hidden" name="display_name" value="<?= $this->escape($this->user->getDisplayName()) ?>">
 顯示頭像 Photo：<img src="<?= $this->escape($this->user->getImage()) ?>" width="128" height="128"><br>
 顯示名稱 Name ：<?= $this->escape($this->user->getDisplayName()) ?><br>
 <div class="alert alert-primary" role="alert">
@@ -141,17 +138,17 @@ recordButton.addEventListener('click', recordButtonClick);
     <?php foreach (Intro::search(array('event' => $this->event->id))->order('created_at ASC') as $intro) { ?>
     <?php $data = json_decode($intro->data) ?>
     <div class="card">
-        <img class="card-img" src="<?= $this->escape($data->avatar) ?>" alt="">
+        <img class="card-img" src="<?= $this->escape($intro->user->getImage()) ?>" alt="">
         <div class="card-body">
-        <h3 class="card-title">@<?= $this->escape($data->account) ?></h3>
-        <p class="card-text">顯示名稱 Display Name：<?= $this->escape($data->display_name) ?></p>
+        <h3 class="card-title">@<?= $this->escape($intro->user->account) ?></h3>
+        <p class="card-text">顯示名稱 Display Name：<?= $this->escape($intro->user->getDisplayName()) ?></p>
         <p class="card-text" style="word-wrap: break-word; ">關鍵字 Keywords：<?= $this->escape($data->keyword) ?></p>
         </div>
         <div class="card-footer">
         <?php if ($data->voice_path) { ?>
         <p><a href="#" class="btn btn-primary play-voice" data-path="<?= $this->escape($data->voice_path) ?>" data-id="<?= $intro->id ?>">播放自介 Recording</a></p>
         <?php } else { ?>
-        <p><a href="#" class="btn btn-primary play-tts" data-text="<?= $this->escape($data->display_name . ' ' . $data->keyword) ?>">機器發音 Robot Speaking</a></p>
+        <p><a href="#" class="btn btn-primary play-tts" data-text="<?= $this->escape($intro->user->getDisplayName() . ' ' . $data->keyword) ?>">機器發音 Robot Speaking</a></p>
         <?php } ?>
         </div>
     </div>

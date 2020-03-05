@@ -40,11 +40,11 @@ class EventController extends Pix_Controller
         foreach (Intro::search(array('event' => $id))->order('created_at ASC') as $intro) {
             $data = json_decode($intro->data);
             fputcsv($output, array(
-                $data->account,
-                $data->display_name,
+                $intro->user->account,
+                $intro->user->getDisplayName(),
                 $data->keyword,
                 date('c', $intro->created_at),
-                $data->avatar,
+                $intro->user->getImage(),
                 $data->voice_path,
             ));
         }
@@ -63,10 +63,7 @@ class EventController extends Pix_Controller
             $data = json_decode($intro->data);
             $obj = new StdClass;
             $obj->created_at = $intro->created_at;
-            $obj->account = $data->account;
-            $obj->display_name = $data->display_name;
             $obj->keyword = $data->keyword;
-            $obj->avatar = $data->avatar;
             $obj->voice_path = $data->voice_path;
             $ret[] = $obj;
         }
@@ -88,10 +85,7 @@ class EventController extends Pix_Controller
         }
 
         $data = array(
-            'display_name' => $_POST['display_name'],
-            'account' => $_POST['account'],
             'keyword' => $_POST['keyword'],
-            'avatar' => $_POST['avatar'],
         );
 
         if ($_POST['record_data']) {
