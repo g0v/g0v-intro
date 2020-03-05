@@ -59,7 +59,13 @@ class LoginController extends Pix_Controller
         if (!$obj->ok) {
             return $this->alert($obj->error, '/');
         }
-        $account = $obj->user->profile->display_name;
+        if ($obj->user->profile->display_name) {
+            $account = $obj->user->profile->display_name;
+        } elseif ($obj->user->profile->real_name) {
+            $account = $obj->user->profile->real_name;
+        } else {
+            return $this->alert("error, account not found", "/");
+        }
 
         if (!$u = User::find($user_id)) {
             $u = User::insert(array(
