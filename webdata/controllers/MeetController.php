@@ -64,9 +64,11 @@ class MeetController extends Pix_Controller
         $ret = new StdClass;
         $ret->data = $channel->getData();
         $ret->meta = $channel->getStatus()->getMeta();
+        $ret->status = $channel->getStatus()->getData();
         $ret->user = new StdClass;
         $ret->user->slack_id = $this->view->user->slack_id;
         $ret->user->avatar = $this->view->user->getImage();
+        $ret->user->account = $this->view->user->account;
         return $this->json($ret);
     }
 }
