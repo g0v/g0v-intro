@@ -387,7 +387,7 @@ function onConferenceJoined() {
     isJoined = true;
     update_member_list(true);
     reportUserList();
-    setTimeout(reportUserList, 60000);
+    setInterval(reportUserList, 60000);
     room.on(
         JitsiMeetJS.events.conference.TRACK_AUDIO_LEVEL_CHANGED,
 		level_changed
