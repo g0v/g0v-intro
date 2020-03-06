@@ -216,6 +216,7 @@ html {
 <span class="v-all v-5 v-a"><i class="fas fa-circle"></i></span>
 </div>
 </script>
+<div id="audio-pool"></div>
 <div id="member-list">
 	<div class="member-box" id="member-me" style="display:none">
 	<div class="member-avatar">
@@ -361,15 +362,16 @@ function onRemoteTrack(track) {
             track.attach($(`#member-${participant} .member-video`)[0]);
 		}
     } else {
-		if (!$(`#member-${participant} audio`).length) {
-			$(`#member-${participant}`).append('<audio autoplay="1" class="remote" />');
+		if (!$(`#audio-${participant}`).length) {
+			$('#audio-pool').append(`<audio id="audio-${participant}" autoplay="1" class="remote" />`);
 		}
 
-		if (old_track = $(`#member-${participant} audio`).data('track')) {
-			old_track.detach($(`#member-${participant} audio`)[0]);
+		if (old_track = $(`#audio-${participant}`).data('track')) {
+			old_track.detach($(`#audio-${participant}`)[0]);
 		}
-		track.attach($(`#member-${participant} audio`)[0]);
-		$(`#member-${participant} audio`).data('track', track);
+		track.attach($(`#audio-${participant}`)[0]);
+		$(`#audio-${participant}`).data('track', track);
+
 		if (room.participants[participant].isAudioMuted()) {
 			$(`#member-${participant} .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
 		} else {
