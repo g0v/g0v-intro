@@ -111,6 +111,35 @@ html {
     overflow: scroll;
     height: 100%;
 }
+
+#track-video {
+	width: 100%;
+	height: 100%;
+	display: none;
+}
+
+#main-no-video {
+	width: 100%;
+	height: 100%;
+	position: relative;
+}
+
+#main-no-video .card {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+
+}
+
+.has-video #main-no-video {
+	display: none;
+}
+
+.has-video #track-video {
+	display: block;
+}
+
 </style>
 <div id="feature-area">
     <h1 style="display: inline; float: left; width: 40%"><input type="text" id="title" value="" readonly="readonly"  style="width: 100%"></h1>
@@ -145,7 +174,16 @@ html {
         <iframe src="https://g0v.hackmd.io/@jothon/hsiaothon/" style="width: 100%; height: 100%"></iframe>
     </div>
     <div class="main-area-section" id="main-area-video" style="width: 100%; height: 100%; display:none; ">
-		<video autoplay="1" style="width: 100%; height: 100%" id="track-video"></video>
+        <video autoplay="1" style="width: 100%; height: 100%" id="track-video"></video>
+		<div id="main-no-video">
+			<div class="card" style="width: 256px;">
+				<img src="..." class="card-img-top" alt="..." width="256" height="256">
+				<div class="card-body">
+					<h5 class="card-title">Card title</h5>
+					<p class="card-text"></p>
+				</div>
+			</div>
+        </div>
     </div>
 </div>
 <div id="member-area">
@@ -450,7 +488,10 @@ function onConferenceJoined() {
         $(`#member-${id}`).addClass('member-talking');
     });
     room.on(JitsiMeetJS.events.conference.USER_LEFT, (id, user) => {
-        onUserLeft(id);
+		if (id == $('#main-area-video').data('playing-user')) {
+			$('#main-area-video').data('playing-user', null);
+			check_main_video();
+		}
         update_member_list();
     });
     room.on(JitsiMeetJS.events.conference.DISPLAY_NAME_CHANGED, (id, user) => {
@@ -459,13 +500,6 @@ function onConferenceJoined() {
     room.on(JitsiMeetJS.events.conference.PARTICIPANT_PROPERTY_CHANGED, (id, text, ts) => {
         update_member_list();
     });
-}
-
-/**
- *
- * @param id
- */
-function onUserLeft(id) {
 }
 
 /**
@@ -492,6 +526,9 @@ function onConnectionSuccess() {
                 $(`#member-${id}`).addClass('has-video')
                 track.attach($(`#member-${id} .member-video`)[0]);
 				$(`#member-${id} .video-status`).removeClass('fa-video-slash').addClass('fa-video');
+			}
+			if (id == $('#main-area-video').data('playing-user')) {
+				$(`#member-${id}`).click();
 			}
 		} else {
 			if (track.muted) {
@@ -529,13 +566,13 @@ $('.main-switch').click(function(e){
 	e.preventDefault();
 	var tab = $(this).attr('id').split('-')[2];
 	$('.main-area-section').hide();
-	$('#main-area-' + tab).show();
+    $('#main-area-' + tab).show();
+    if (tab == 'video') {
+        check_main_video();
+    }
 	$('.main-switch').removeClass('active');
-	$(this).addClass('active');
-	
+    $(this).addClass('active');
 });
-
-let isVideo = true;
 
 $(window).bind('beforeunload', unload);
 $(window).bind('unload', unload);
@@ -569,6 +606,7 @@ $.get('/meet/data/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_enco
     my_info = ret.user;
 	$('#member-me .member-image').attr('src', ret.user.avatar);
 	$('#member-me').show();
+	$('#member-me').data('info', ret.user);
     $('#title').val(ret.meta.title);
 
     JitsiMeetJS.init(initOptions);
@@ -695,11 +733,31 @@ $('#auth-microphone').change(function(e){
 
 $('#member-list').on('click', '.member-box', function(e){
 	e.preventDefault();
+    var id = $(this).attr('id').split('-')[1];
+	var info = $(this).data('info');
+    $('#main-area-video').data('playing-user', id);
+	if (info) {
+		$('#main-no-video img').attr('src', info.avatar);
+		$('#main-no-video .card-title').text('@' + info.account);
+		$('#main-no-video .card-text').text('Keyword: ' + info.keyword);
+	}
+
 	var track = $(this).data('video-track');
 	if (track && !track.muted) {
-		track_video_attach(track);
-	}
+        track_video_attach(track);
+        $('#main-area-video').addClass('has-video');
+    } else {
+        $('#main-area-video').removeClass('has-video');
+    }
 });
+
+var check_main_video = function(){
+    var playing_user = $('#main-area-video').data('playing-user');
+    if (!playing_user || !$(`#member-${playing_user}`).length) {
+		$('.member-box:first()').click();
+    }
+};
+
 
 </script>
 <?= $this->partial('common/footer.phtml', $this) ?>
