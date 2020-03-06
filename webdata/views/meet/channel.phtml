@@ -269,6 +269,7 @@ function track_video_attach(track) {
  * Handles local tracks.
  * @param tracks Array with JitsiTrack objects
  */
+var pending_tracks = [];
 function onLocalTracks(tracks) {
     for (let i = 0; i < tracks.length; i++) {
         if (tracks[i].getType() === 'video') {
@@ -310,7 +311,11 @@ function onLocalTracks(tracks) {
 			tracks[i].addEventListener(JitsiMeetJS.events.track.TRACK_AUDIO_LEVEL_CHANGED, function(audioLevel) {
 				level_changed('me', audioLevel);
 			});
-            room.addTrack(tracks[i]);
+			if (isJoined) {
+				room.addTrack(tracks[i]);
+			} else {
+				pending_tracks.push(tracks[i]);
+			}
 		}
     }
 }
@@ -483,7 +488,9 @@ var level_changed = function(participant, audioLevel) {
 	}
 };
 
+let isJoined = false;
 function onConferenceJoined() {
+	isJoined = true;
     room.setLocalParticipantProperty('slack_id', my_info.slack_id);
     room.setLocalParticipantProperty('login_at', (new Date()).getTime());
     room.setDisplayName(my_info.account);
@@ -515,6 +522,9 @@ function onConferenceJoined() {
     room.on(JitsiMeetJS.events.conference.PARTICIPANT_PROPERTY_CHANGED, (id, text, ts) => {
         update_member_list();
     });
+	for (var track of pending_tracks) {
+		room.addTrack(track);
+	}
 }
 
 /**
@@ -640,6 +650,12 @@ $.get('/meet/data/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_enco
         disconnect);
 
     connection.connect();
+
+JitsiMeetJS.createLocalTracks({ devices: [ 'audio' ] })
+	.then(onLocalTracks)
+	.catch(error => {
+		throw error;
+});
 
 	if (JitsiMeetJS.mediaDevices.isDeviceChangeAvailable('output')) {
 		JitsiMeetJS.mediaDevices.enumerateDevices(devices => {
