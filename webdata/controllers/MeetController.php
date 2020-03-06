@@ -65,6 +65,12 @@ class MeetController extends Pix_Controller
         $ret = new StdClass;
         $ret->spent = 0;
         $ret->error = false;
+
+        $ret->event = new STdClass;
+        $ret->event->id = $event->id;
+        $ret->event->name = $event->name;
+        $ret->event->data = $event->GetData();
+
         $ret->channels = array();
         $ret->users = array();
         foreach (Channel::search(array('event_id' => $event->id)) as $channel) {
