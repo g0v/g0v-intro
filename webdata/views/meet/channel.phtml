@@ -226,13 +226,17 @@ function onLocalTracks(tracks) {
         if (tracks[i].getType() === 'video') {
             if ($('#member-me').data('video-track')) {
                 var old_type = $('#member-me').data('video-type');
-                $('#member-me').data(`${old_type}-track`).dispose();
-                $('#member-me').data(`${old_type}-track`, null);
-                $(`#auth-${old_type}`).prop('checked', false);
-                $('#member-me').data('video-track').mute();
-                room.removeTrack($('#member-me').data('video-track')).then(function(){
+                if ($('#member-me').data(`${old_type}-track`)) {
+                    $('#member-me').data(`${old_type}-track`).dispose();
+                    $('#member-me').data(`${old_type}-track`, null);
+                    $('#member-me').data('video-track', null);
+                    room.removeTrack($('#member-me').data(`${old_type}-track`)).then(function(){
+                        room.addTrack(tracks[i]);
+                    });
+                } else {
                     room.addTrack(tracks[i]);
-                });
+                }
+                $(`#auth-${old_type}`).prop('checked', false);
             } else {
                 room.addTrack(tracks[i]);
             }
@@ -439,8 +443,6 @@ function onConferenceJoined() {
 	);
 
     room.on(JitsiMeetJS.events.conference.USER_JOINED, (id, user) => {
-        console.log(id);
-        console.log(room.participants);
         update_member_list();
     });
     room.on(JitsiMeetJS.events.conference.DOMINANT_SPEAKER_CHANGED, (id) => {
@@ -618,8 +620,11 @@ $('#auth-screen').change(function(e){
 				$(`#member-me .video-status`).removeClass('fa-video-alt-slash').addClass('fa-video-alt');
 			});
         } else {
-            $('#member-me').data('screen-track', null);
             screen_track.mute().then(function(){
+                if ($('#member-me').data('screen-track')) {
+                    screen_track.dispose();
+                    $('#member-me').data('screen-track', null);
+                }
 				$('#auth-screen').prop('checked', false);
                 $('#member-me').removeClass('has-video');
                 screen_track.detach($('#member-me .member-video')[0]);
@@ -649,8 +654,11 @@ $('#auth-camera').change(function(e){
 				$(`#member-me .video-status`).removeClass('fa-video-alt-slash').addClass('fa-video-alt');
 			});
         } else {
-            $('#member-me').data('camera-track', null)
 			camera_track.mute().then(function(){
+                if ($('#member-me').data('camera-track')) {
+                    camera_track.dispose();
+                    $('#member-me').data('camera-track', null)
+                }
 				$('#auth-camera').prop('checked', false);
                 $('#member-me').removeClass('has-video');
                 camera_track.detach($('#member-me .member-video')[0]);
