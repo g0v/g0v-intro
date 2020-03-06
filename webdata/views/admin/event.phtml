@@ -36,6 +36,8 @@
         <option value="0" <?= $this->event->status == 0 ? 'selected="selected"' : '' ?>>收集中</option>
         <option value="1" <?= $this->event->status == 1 ? 'selected="selected"' : '' ?>>結束</option>
     </select><br>
+    自介頁說明：<textarea name="intro-description"><?= $this->escape($this->event->getData()->{'intro-description'}) ?></textarea><br>
+    大廳頁說明：<textarea name="meet-description"><?= $this->escape($this->event->getData()->{'intro-description'}) ?></textarea><br>
     <button type="submit">修改</button>
 </form>
 <?php } else { ?>
@@ -48,6 +50,8 @@
         <option value="0">收集中</option>
         <option value="1">結束</option>
     </select><br>
+    自介頁說明：<textarea name="intro-description"></textarea><br>
+    大廳頁說明：<textarea name="meet-description"></textarea><br>
     <button type="submit">新增</button>
 </form>
 <?php } ?>

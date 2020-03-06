@@ -42,6 +42,10 @@ class AdminController extends Pix_Controller
                 'status' => intval($_POST['status']),
             ));
         }
+        $event->updateData(array(
+            'intro-description' => strval($_POST['intro-description']),
+            'meet-description' => strval($_POST['meet-description']),
+        ));
         return $this->alert('ok', '/admin/event?event_id' . urlencode($event->id));
     }
 
