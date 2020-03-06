@@ -9,6 +9,15 @@ class EventRow extends Pix_Table_Row
         }
         return json_decode($this->data);
     }
+
+    public function updateData($values)
+    {
+        $data = $this->getData();
+        foreach ($values as $k => $v) {
+            $data->{$k} = $v;
+        }
+        $this->update(array('data' => json_encode($data)));
+    }
 }
 
 class Event extends Pix_Table
