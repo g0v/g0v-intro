@@ -171,7 +171,7 @@ html {
 </div>
 <div id="main-area">
 	<div class="main-area-section" id="main-area-hackmd" style="width: 100%; height: 100%">
-        <iframe src="https://g0v.hackmd.io/@jothon/hsiaothon/" style="width: 100%; height: 100%"></iframe>
+        <iframe src="" style="width: 100%; height: 100%"></iframe>
     </div>
     <div class="main-area-section" id="main-area-video" style="width: 100%; height: 100%; display:none; ">
         <video autoplay="1" style="width: 100%; height: 100%" id="track-video"></video>
@@ -606,7 +606,8 @@ $.get('/meet/data/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_enco
     my_info = ret.user;
 	$('#member-me .member-image').attr('src', ret.user.avatar);
 	$('#member-me').show();
-	$('#member-me').data('info', ret.user);
+    $('#member-me').data('info', ret.user);
+    $('#main-area-hackmd iframe').attr('src', ret.meta.hackmd);
     $('#title').val(ret.meta.title);
 
     JitsiMeetJS.init(initOptions);
