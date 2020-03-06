@@ -12,11 +12,11 @@ class ChannelRow extends Pix_Table_Row
             return true; // channel is public
         }
 
-        if ($user and in_array($user->slack_id, $channel->getData()->owners)) {
+        if ($user and in_array($user->slack_id, $this->getData()->owners)) {
             return true; // is owner
         }
 
-        if ($user and in_array($user->slack_id, $channel->getData()->invite_list)) {
+        if ($user and in_array($user->slack_id, $this->getData()->invite_list)) {
             return true; // is invited
         }
 
