@@ -145,8 +145,19 @@ class EventController extends Pix_Controller
         $ret->error = false;
         $ret->data = new StdClass;
         if ($users) {
+            foreach (User::search(1)->searchIn('slack_id', $users) as $user) {
+                $ret->data->{$user->slack_id} = new StdClass;
+                $ret->data->{$user->slack_id}->display_name = $user->getDisplayName();
+                $ret->data->{$user->slack_id}->avatar = $user->getImage();
+                $ret->data->{$user->slack_id}->account = $user->account;
+            }
             foreach (Intro::search(array('event' => $event_id))->searchIn('created_by', $users) as $intro) {
-                $ret->data->{$intro->created_by} = json_decode($intro->data);
+                $data = json_decode($intro->data);
+                foreach (array('keyword', 'voice_path', 'voice_length') as $k) {
+                    if (property_exists($data, $k)) {
+                        $ret->data->{$intro->created_by}->{$k} = $data->{$k};
+                    }
+                }
             }
         }
         return $this->json($ret);
