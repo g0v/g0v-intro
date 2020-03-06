@@ -11,13 +11,18 @@ body, div.container-fluid {
     top: 62px;
 	width: 90%;
 }
+
+.member-image {
+    width: 120px;
+    height: 120px;
+}
+
 #member-area {
     position: fixed;
     width: 140px;
     top: 56px;
     right: 0px;
     height: 100%;
-    border: 1px solid black;
     text-align: center;
 }
 
@@ -48,19 +53,17 @@ body, div.container-fluid {
     height: 100%;
 }
 .member-box {
-    height: 128px;
-    width: 128px;
+    height: 120px;
+    width: 120px;
     position: relative;
 }
 .member-avatar {
-    width: 128px;
-    height: 128px;
-    border: 1px solid black;
+    width: 120px;
+    height: 120px;
 }
 .member-video {
-    width: 128px;
-    height: 128px;
-    border: 1px solid black;
+    width: 120px;
+    height: 120px;
     position: absolute;
     top: 0px;
     left: 0px;
@@ -86,8 +89,8 @@ body, div.container-fluid {
 
 .member-displayname {
     position: absolute;
-    top: 105px;
-    left: 4px;
+    bottom: 0px;
+    left: 0px;
     background-color: rgba(255,255,255,0.5);
 }
 .member-talking { background-color: yellow; }
@@ -97,7 +100,6 @@ body, div.container-fluid {
     bottom: 0px;
     top: 110px;
     right: 140px;
-    border: 1px solid black;
 }
 html {
         height: 100%;
@@ -199,7 +201,7 @@ html {
 <script id="tmpl-member-box" type="text/html">
 <div class="member-box">
 <div class="member-avatar">
-<img class="member-image" src="" width="120" height="120" style="display:none">
+<img class="member-image rounded" src="" style="display:none">
 <div class="member-nointro" style="display:none">無自介使用者</div>
 </div>
 <video class="member-video" autoplay="1"></video>
@@ -218,7 +220,7 @@ html {
 <div id="member-list">
 	<div class="member-box" id="member-me" style="display:none">
 	<div class="member-avatar">
-	<img class="member-image" src="" width="120" height="120">
+        <img class="member-image rounded" src="">
 	</div>
     <video class="member-video" autoplay="1"></video>
 	<span class="member-displayname">Me</span>
@@ -419,7 +421,7 @@ var update_member_list = function(){
 					$('.video-status', member_box).removeClass('fa-video').addClass('fa-video-slash');
 				} else {
 					$('.video-status', member_box).removeClass('fa-video-slash').addClass('fa-video');
-				}
+                }
                 $('#member-list').append(member_box);
             }
             $(`#member-${id}`).removeClass('checking');
@@ -430,6 +432,9 @@ var update_member_list = function(){
                 $(`#member-${id} .member-image`).show();
                 $(`#member-${id} .member-nointro`).hide();
                 $(`#member-${id}`).data('info', info);
+                $(`#member-${id}`).attr('title', `Keyword: ${info.keyword}`) ;
+                $(`#member-${id}`).tooltip({placement: 'top'});
+                
             } else {
                 if (null === participant.getDisplayName()) {
                     displayname = 'Fellow Jitster';
@@ -440,6 +445,7 @@ var update_member_list = function(){
                 $(`#member-${id} .member-displayname`).text(displayname);
                 $(`#member-${id} .member-image`).hide();
                 $(`#member-${id} .member-nointro`).show();
+                $(`#member-${id}`).attr('title', '');
                 $(`#member-${id}`).data('info', null);
             }
         }
