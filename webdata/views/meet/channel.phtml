@@ -173,9 +173,6 @@ html {
             <label class="custom-control-label" for="auth-screen">螢幕分享</label>
         </div>
         </div>
-        <div class="list-group-item" id="attach-audio-area">
-			<a id="attach-audio-button" href="#">沒聲音?</a>
-        </div>
     </div>
 </div>
 <div id="main-area">
@@ -344,18 +341,6 @@ function onLocalTracks(tracks) {
     }
 }
 
-var has_audio = false;
-$('#attach-audio-button').click(function(e){
-	// workaround...
-	e.preventDefault();
-	if ($('audio.remote').length) {
-		var track = $('audio.remote').data('track');
-		if (track) {
-			track.attach($('audio.remote')[0]);
-		}
-	}
-});
-
 function reportUserList()
 {
     var users = [];
@@ -489,11 +474,6 @@ var update_member_list = function(){
 };
 
 var level_changed = function(participant, audioLevel) {
-	if (audioLevel > 0) {
-		has_audio = true;
-		$('#attach-audio-area').hide();
-	}
-	
 	$(`#member-${participant} .v-all`).css('opacity', '0%');
 	if (audioLevel >= 1.0) {
 		$(`#member-${participant} .v-a`).css('opacity', '100%');
