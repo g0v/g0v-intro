@@ -678,8 +678,8 @@ $.get('/meet/data/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_enco
 JitsiMeetJS.createLocalTracks({ devices: [ 'audio' ] })
 	.then(onLocalTracks)
 	.catch(error => {
-		throw error;
-});
+		add_toast('權限錯誤 Permission Error', '無法得到麥克風權限 Error obtaining microphone permission. ' + error, '#ff3333');
+	});
 
 	if (JitsiMeetJS.mediaDevices.isDeviceChangeAvailable('output')) {
 		JitsiMeetJS.mediaDevices.enumerateDevices(devices => {
@@ -770,20 +770,16 @@ $('#auth-microphone').change(function(e){
 		JitsiMeetJS.createLocalTracks({ devices: [ 'audio' ] })
 			.then(onLocalTracks)
 			.catch(error => {
-				throw error;
+				$('#auth-microphone').prop('checked', false);
+				add_toast('權限錯誤 Permission Error', '無法得到麥克風權限 Error obtaining microphone permission. ' + error, '#ff3333');
 		});
 	} else {
-		if (audio_track.isMuted()) {
-			audio_track.unmute().then(function(){
-				$('#auth-microphone').prop('checked', true);
-				$(`#member-me .microphone-status`).removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
-			});
-		} else {
-			audio_track.mute().then(function(){
-				$('#auth-microphone').prop('checked', false);
-				$(`#member-me .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
-			});
-		}
+		audio_track.mute().then(function(){
+			audio_track.dispose();
+			$('#member-me').data('audio-track', null);
+			$('#auth-microphone').prop('checked', false);
+			$(`#member-me .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+		});
 	}
 });
 
