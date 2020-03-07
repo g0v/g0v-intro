@@ -702,29 +702,19 @@ $('#auth-screen').change(function(e){
 		JitsiMeetJS.createLocalTracks({ devices: [ 'desktop' ] })
 			.then(onLocalTracks)
 			.catch(error => {
-				throw error;
-		});
+				add_toast('權限錯誤 Permission Error', '無法得到桌面分享權限 Error obtaining desktop share permission. ' + error, '#ff3333');
+			});
 	} else {
-		if (screen_track.isMuted()) {
-			screen_track.unmute().then(function(){
-				$('#auth-screen').prop('checked', true);
-				$('#auth-camera').prop('checked', false);
-                $('#member-me').addClass('has-video');
-                screen_track.attach($('#member-me .member-video')[0]);
-				$(`#member-me .video-status`).removeClass('fa-video-alt-slash').addClass('fa-video-alt');
-			});
-        } else {
-            screen_track.mute().then(function(){
-                if ($('#member-me').data('screen-track')) {
-                    screen_track.dispose();
-                    $('#member-me').data('screen-track', null);
-                }
-				$('#auth-screen').prop('checked', false);
-                $('#member-me').removeClass('has-video');
-                screen_track.detach($('#member-me .member-video')[0]);
-				$(`#member-me .video-status`).removeClass('fa-video-alt').addClass('fa-video-alt-slash');
-			});
-		}
+		screen_track.mute().then(function(){
+			if ($('#member-me').data('screen-track')) {
+				screen_track.dispose();
+				$('#member-me').data('screen-track', null);
+			}
+			$('#auth-screen').prop('checked', false);
+			$('#member-me').removeClass('has-video');
+			screen_track.detach($('#member-me .member-video')[0]);
+			$(`#member-me .video-status`).removeClass('fa-video-alt').addClass('fa-video-alt-slash');
+		});
 	}
 });
 
@@ -736,29 +726,20 @@ $('#auth-camera').change(function(e){
 		JitsiMeetJS.createLocalTracks({ devices: [ 'video' ] })
 			.then(onLocalTracks)
 			.catch(error => {
-				throw error;
-		});
-	} else {
-		if (camera_track.isMuted()) {
-			camera_track.unmute().then(function(){
-				$('#auth-camera').prop('checked', true);
-				$('#auth-screen').prop('checked', false);
-                $('#member-me').addClass('has-video');
-                camera_track.attach($('#member-me .member-video')[0]);
-				$(`#member-me .video-status`).removeClass('fa-video-alt-slash').addClass('fa-video-alt');
-			});
-        } else {
-			camera_track.mute().then(function(){
-                if ($('#member-me').data('camera-track')) {
-                    camera_track.dispose();
-                    $('#member-me').data('camera-track', null)
-                }
 				$('#auth-camera').prop('checked', false);
-                $('#member-me').removeClass('has-video');
-                camera_track.detach($('#member-me .member-video')[0]);
-				$(`#member-me .video-status`).removeClass('fa-video-alt').addClass('fa-video-alt-slash');
+				add_toast('權限錯誤 Permission Error', '無法得到攝影機權限 Error obtaining camera permission. ' + error, '#ff3333');
 			});
-		}
+	} else {
+		camera_track.mute().then(function(){
+			if ($('#member-me').data('camera-track')) {
+				camera_track.dispose();
+				$('#member-me').data('camera-track', null)
+			}
+			$('#auth-camera').prop('checked', false);
+			$('#member-me').removeClass('has-video');
+			camera_track.detach($('#member-me .member-video')[0]);
+			$(`#member-me .video-status`).removeClass('fa-video-alt').addClass('fa-video-alt-slash');
+		});
 	}
 });
 
