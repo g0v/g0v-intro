@@ -689,6 +689,7 @@ $('#auth-screen').change(function(e){
 			if ($('#member-me').data('screen-track')) {
 				screen_track.dispose();
 				$('#member-me').data('screen-track', null);
+				$('#member-me').data('video-track', null);
 			}
 			$('#auth-screen').prop('checked', false);
 			$('#member-me').removeClass('has-video');
@@ -714,6 +715,7 @@ $('#auth-camera').change(function(e){
 			if ($('#member-me').data('camera-track')) {
 				camera_track.dispose();
 				$('#member-me').data('camera-track', null)
+				$('#member-me').data('video-track', null);
 			}
 			$('#auth-camera').prop('checked', false);
 			$('#member-me').removeClass('has-video');
