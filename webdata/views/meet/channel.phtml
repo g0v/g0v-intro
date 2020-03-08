@@ -149,12 +149,45 @@ html {
     background: black;
 }
 
+#chat-area {
+	position: fixed;
+	width: 250px;
+	top: 0px;
+	right: 140px;
+	height: 100%;
+	background: white;
+}
+
+#chat-area .card {
+	height: 100%;
+}
+
+#chat-area .message {
+	background: white;
+}
+
+#chat-area .message .content {
+    overflow: hidden;
+    padding-bottom: 10px;
+}
+
+#chat-area .message {
+    clear: both;
+}
+
+#chat-area .card-body {
+	overflow: scroll;
+}
+
 </style>
 <div id="feature-area">
     <h1 style="display: inline; float: left; width: 40%"><input type="text" id="title" value="" readonly="readonly"  style="width: 100%"></h1>
 	<div class="list-group list-group-horizontal">
 		<a href="#" class="list-group-item active main-switch" id="main-switch-hackmd">共筆</a>
 		<a href="#" class="list-group-item main-switch" id="main-switch-video">影音畫面</a>
+		<a href="#" class="list-group-item" id="chat-switch">聊天
+			<span class="badge badge-primary badge-pill" style="display:none">0</span>
+		</a>
         <div class="list-group-item">
         <div class="custom-control custom-switch" style="float: left">
             <input type="checkbox" class="custom-control-input" id="auth-microphone">
@@ -233,6 +266,28 @@ html {
 	</div>
 </div><!-- #member-list -->
 </div><!-- #member-area -->
+
+<script id="tmpl-chat-message" type="text/html">
+<div class="message">
+    <div class="content">
+        <div>
+            <span class="user-name" title=""><strong></strong></span>
+            <span class="message-time" title=""></span>
+        </div>
+	</div>
+</div>
+</script>
+<div id="chat-area" style="display:none">
+	<div class="card">
+	  <div class="card-header">Chat</div>
+	  <div class="card-body">
+	  </div>
+	  <div class="card-footer input-group">
+		  <form method="post" id="chat-form">
+			  <input type="text" class="form-control" placeholder="說些什麼 Say something" aria-label="說些什麼 Say something" aria-describedby="button-addon2">
+		  </form>
+	</div>
+</div>
 
 <div id="toast-area" style="position: absolute; bottom: 30px; left: 30px"></div>
 <script id="tmpl-toast" type="text/html">
@@ -513,6 +568,9 @@ function onConferenceJoined() {
         $('.member-box').removeClass('member-talking');
         $(`#member-${id}`).addClass('member-talking');
     });
+    room.on(JitsiMeetJS.events.conference.MESSAGE_RECEIVED, (id, text, ts, nick, other) => {
+		add_chat_message(id, text, ts, nick);
+    });
     room.on(JitsiMeetJS.events.conference.USER_LEFT, (id, user) => {
 		if (id == $('#main-area-video').data('playing-user')) {
 			$('#main-area-video').data('playing-user', null);
@@ -590,6 +648,19 @@ function unload() {
     room.leave();
     connection.disconnect();
 }
+
+
+$('#chat-switch').click(function(e){
+	e.preventDefault();
+    if ($('#chat-switch').is('.active')) {
+		$('#chat-area').hide();
+		$('#chat-switch').removeClass('active');
+	} else {
+		$('#chat-area').show();
+		$('#chat-switch').addClass('active');
+		$('#chat-switch .badge').text(0).hide();
+	}
+});
 
 $('.main-switch').click(function(e){
 	e.preventDefault();
@@ -772,6 +843,43 @@ var check_main_video = function(){
 		$('.member-box:first()').click();
     }
 };
+
+var add_chat_message = function(id, text, ts, nick){
+	var d;
+	if ('undefined' === typeof(ts)) {
+		d = new Date();
+	} else {
+		d = new Date(ts);
+	}
+
+	var dom = $('#chat-area .card-body .message:last');
+	if (dom.length && (d.getTime() - dom.data('ts').getTime() < 60 * 2 * 1000) && nick == dom.data('nick')) {
+    } else {
+		dom = $($('#tmpl-chat-message').html());
+		dom.data('ts', d);
+		dom.data('nick', nick);
+		$('.user-name strong', dom).text(nick);
+		$('.message-time', dom).text(('00' + d.getHours()).slice(-2) + ':' + ('00' + d.getMinutes()).slice(-2));
+		$('#chat-area .card-body').append(dom);
+	}
+	$('.content', dom).append($('<div></div>').text(text));
+	$('#chat-area .card-body').scrollTop($('#chat-area .card-body').height());
+
+	if (!$('#chat-switch').is('.active')) {
+		$('#chat-switch .badge').text(1 + parseInt($('#chat-switch .badge').text())).show();
+	}
+	
+};
+
+$('#chat-form').submit(function(e){
+	e.preventDefault();
+	var text = $('#chat-form input').val();
+	if (!text) {
+		return;
+	}
+	room.sendTextMessage(text);
+	$('#chat-form input').val('').focus();
+});
 
 
 </script>
