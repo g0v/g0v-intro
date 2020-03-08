@@ -31,6 +31,9 @@ var get_user_list = function(users, user_infos){
     }
 
     users.map(function(user){
+        if ('undefined' === typeof(infos[user])) {
+            return;
+        }
         div_dom.append($('<div></div>').addClass('card').css('float', 'left').append(
             $('<img>').attr({src: infos[user].avatar, width:50, height:50})
         ).append($('<span></span>').text(infos[user].account)));
