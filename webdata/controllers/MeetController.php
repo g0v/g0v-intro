@@ -144,6 +144,7 @@ class MeetController extends Pix_Controller
         $ret->user->slack_id = $this->view->user->slack_id;
         $ret->user->avatar = $this->view->user->getImage();
         $ret->user->account = $this->view->user->account;
+        $ret->user->type = intval($this->view->user->type);
         $intro = Intro::search(array('event' => $event_id, 'created_by' => $ret->user->slack_id))->first();
         if ($intro) {
             $data = json_decode($intro->data);
