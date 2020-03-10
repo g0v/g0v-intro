@@ -285,10 +285,14 @@ html {
 	  <div class="card-body">
 	  </div>
 	  <div class="card-footer input-group">
-		  <form method="post" id="chat-form">
-			  <input type="text" class="form-control" placeholder="說些什麼 Say something" aria-label="說些什麼 Say something" aria-describedby="button-addon2">
+          <form method="post" id="chat-form">
+              <div class="input-group-text" style="display:none">
+                  <input type="checkbox" name="broadcast">Boardcast
+              </div>
+              <input type="text" name="talk" class="form-control" placeholder="說些什麼 Say something" aria-label="說些什麼 Say something" aria-describedby="button-addon2">
 		  </form>
 	</div>
+  </div>
 </div>
 
 <div id="toast-area" style="position: absolute; bottom: 30px; left: 30px"></div>
@@ -573,6 +577,11 @@ function onConferenceJoined() {
     room.on(JitsiMeetJS.events.conference.MESSAGE_RECEIVED, (id, text, ts, nick, other) => {
 		add_chat_message(id, text, ts, nick);
     });
+    room.on(JitsiMeetJS.events.conference.ENDPOINT_MESSAGE_RECEIVED, (participant, message) => {
+        if (message.type == 'broadcast') {
+            add_toast('廣播 Broadcast', message.message);
+        }
+    });
     room.on(JitsiMeetJS.events.conference.USER_LEFT, (id, user) => {
 		if (id == $('#main-area-video').data('playing-user')) {
 			$('#main-area-video').data('playing-user', null);
@@ -711,6 +720,9 @@ $.get('/meet/data/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_enco
     $('#member-me').data('info', ret.user);
     $('#main-area-hackmd iframe').attr('src', ret.meta.hackmd);
     $('#title').val(ret.meta.title);
+    if (ret.user.type == 2) {
+        $('#chat-area .input-group-text').show();
+    }
 
     JitsiMeetJS.init(initOptions);
 
@@ -875,13 +887,18 @@ var add_chat_message = function(id, text, ts, nick){
 
 $('#chat-form').submit(function(e){
 	e.preventDefault();
-	var text = $('#chat-form input').val();
+	var text = $('#chat-form [name="talk"]').val();
 	if (!text) {
 		return;
-	}
-	room.sendTextMessage(text);
-	$('#chat-form input').val('').focus();
-    });
+    }
+    if ($('[name="broadcast"]').prop('checked') == true) {
+        $('[name="broadcast"]').prop('checked', false);
+        room.broadcastEndpointMessage({type:"broadcast",message:text});
+    } else {
+        room.sendTextMessage(text);
+    }
+	$('#chat-form [name="talk"]').val('').focus();
+});
 
 $('#member-list').on('click', '.microphone-status', function(e){
     e.preventDefault();
