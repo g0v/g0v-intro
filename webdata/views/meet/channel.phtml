@@ -236,6 +236,7 @@ html {
 <video class="member-video" autoplay="1"></video>
 <span class="member-displayname">Fellow Jitster</span>
 <span class="member-status">
+<i class="volume-status fas fa-volume-mute" style="display:none"></i>
 <i class="microphone-status fas fa-microphone-alt"></i>
 <i class="video-status fas fa-video"></i>
 </span>
@@ -254,7 +255,8 @@ html {
 	</div>
     <video class="member-video" autoplay="1"></video>
 	<span class="member-displayname">Me</span>
-	<span class="member-status">
+    <span class="member-status">
+        <i class="volume-status fas fa-volume-mute" style="display:none"></i>
 		<i class="microphone-status fas fa-microphone-alt-slash"></i>
 		<i class="video-status fas fa-video-slash"></i>
 	</span>
@@ -879,6 +881,26 @@ $('#chat-form').submit(function(e){
 	}
 	room.sendTextMessage(text);
 	$('#chat-form input').val('').focus();
+    });
+
+$('#member-list').on('click', '.microphone-status', function(e){
+    e.preventDefault();
+    var member_box_dom = $(this).parents('.member-box');
+    var id = member_box_dom.attr('id').split('-')[1];
+    if (id == 'me') {
+        return;
+    }
+    var audio_dom = $('#audio-' + id)[0];
+    if (!audio_dom) {
+        return;
+    }
+    if ($('.volume-status', member_box_dom).is(':visible')) {
+        $('.volume-status', member_box_dom).hide();
+        audio_dom.muted = false;
+    } else {
+        $('.volume-status', member_box_dom).show();
+        audio_dom.muted = true;
+    }
 });
 
 
