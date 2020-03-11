@@ -61,4 +61,29 @@ class User extends Pix_Table
         }
         return implode(',', $user_accounts);
     }
+
+    public static function fetchUser($user_id)
+    {
+		$url = sprintf("https://slack.com/api/users.info?user=%s&token=%s", $user_id, getenv('SLACK_ACCESS_TOKEN'));
+		$obj = json_decode(file_get_contents($url));
+		if ($obj->user->profile->display_name) {
+			$account = $obj->user->profile->display_name;
+		} elseif ($obj->user->profile->real_name) {
+			$account = $obj->user->profile->real_name;
+		} else {
+			throw new Exception("{$user_id} account not found");
+		}
+		$display_name = $obj->user->real_name;
+		return User::insert(array(
+			'slack_id' => $user_id,
+			'account' => $account,
+			'type' => 0,
+			'created_at' => time(),
+			'logined_at' => 0,
+			'data' => json_encode(array(
+				'display_name' => $display_name,
+				'image' => $obj->user->profile->image_512,
+			)),
+		));
+    }
 }
