@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>g0v helper</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.css">
+<script>
+$(function(){
+	$.get(<?= json_encode($this->api) ?>, function(ret){
+		for (var i = 0; i < ret.length; i ++) {
+			intro = ret[i];
+			var dom = $($('#tmpl-slide').html());
+			$('img', dom).attr('src', intro.avatar);
+			$('h5', dom).text('@' + intro.account);
+			$('p', dom).text(intro.keyword);
+			$('.no', dom).text((i + 1) + '/' + ret.length);
+			dom.data('data', intro);
+			$('.carousel-inner').append(dom);
+		}
+		$('.carousel-item:first').addClass('active');
+
+		$('.carousel').on('slide.bs.carousel', function (e) {
+		  // do something...
+			play($(e.relatedTarget));
+		});
+	}, 'json');
+
+	$('#form').submit(function(e){
+		$('#form').hide();
+		$('.carousel').carousel('next').carousel({interval: 5000, ride: true, pause: false});
+		e.preventDefault();
+	});
+});
+
+var play = function(dom){
+	var data = dom.data('data');
+	if (data.voice_path) {
+		var audio_dom = $('<audio></audio>');
+		audio_dom[0].src = 'https://g0v-intro.s3-ap-northeast-1.amazonaws.com/' + data.voice_path;
+		audio_dom[0].play();
+	} else {
+		speechSynthesis.speak(new SpeechSynthesisUtterance(data.display_name + ' ' + data.keyword));
+	}
+};
+
+
+</script>
+</head>
+<body>
+<style>
+.carousel-caption {
+	background: rgba(100, 100, 100, 0.8);
+}
+.carousel-item {
+	text-align: center;
+}
+.carousel-item h5 {
+	font-size: 3rem;
+}
+.carousel-item p {
+	font-size: 2rem;
+}
+.no {
+	position: absolute;
+	right: 0px;
+	bottom: 0px;
+}
+</style>
+<script id="tmpl-slide" type="text/html">
+    <div class="carousel-item">
+      <center><img src="" class="d-block" alt="..." width="600" height="600"></center>
+      <div class="carousel-caption d-none d-md-block">
+        <h5></h5>
+        <p></p>
+		<div class="no"></div>
+      </div>
+    </div>
+</script>
+<div class="container-fluid">
+<form id="form"><button type="submit">開始</button></form>
+<div id="carouselExampleCaptions" class="carousel slide" style="height: 100%" data-pause="false">
+  <div class="carousel-inner">
+    <div class="carousel-item">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>黑客松自我介紹</h5>
+        <p></p>
+      </div>
+    </div>
+  </div>
+  <a class="carousel-control-prev" href="#carouselExampleCaptions" role="button" data-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="sr-only">Previous</span>
+  </a>
+  <a class="carousel-control-next" href="#carouselExampleCaptions" role="button" data-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="sr-only">Next</span>
+  </a>
+</div>
+</div>
+</body>
+</html>

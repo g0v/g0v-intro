@@ -141,6 +141,12 @@ class EventController extends Pix_Controller
         return $this->alert("自介儲存成功", "/event/show/{$id}");
     }
 
+    public function slideAction()
+    {
+        list(, /*event*/, /*slide*/, $event_id) = explode('/', $this->getURI());
+        $this->view->api = '/event/data/' . $event_id;
+    }
+
     public function userinfoAction()
     {
         list(, /*event*/, /*userinfo*/, $event_id) = explode('/', $this->getURI());
