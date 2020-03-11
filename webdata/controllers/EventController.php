@@ -65,6 +65,10 @@ class EventController extends Pix_Controller
             $obj->created_at = $intro->created_at;
             $obj->keyword = $data->keyword;
             $obj->voice_path = $data->voice_path;
+            $user = User::find($intro->created_by);
+            $obj->display_name = $user->getDisplayName();
+            $obj->avatar = $user->getImage();
+            $obj->account = $user->account;
             $ret[] = $obj;
         }
         header('Access-Control-Allow-Origin: *');
