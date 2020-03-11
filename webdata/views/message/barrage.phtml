@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>彈幕 - <?= $this->escape($this->channel_id) ?></title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.css">
+<script>
+var channel_id = <?= json_encode($this->channel_id); ?>;
+var api_url = '/message/getmessage?channel=' + encodeURIComponent(channel_id);
+$(function(){
+    setInterval(function(){
+        $.get(api_url, function(ret){
+            if (ret.next_url) {
+                api_url = ret.next_url;
+            }
+            if (ret.messages) {
+                ret.messages.map(shoot);
+            }
+        }, 'json');
+    }, 1000);
+});
+var shoot = function(message){
+    var y = Math.floor(Math.random() * window.innerHeight);
+    var dom = $('<div></div>').text(message.user + ':' + message.text);
+
+    $('body').append(dom);
+    dom.css({position: 'fixed', left: Math.floor($(dom).width() * -1), top: y, width: $(dom).width()});
+    dom.animate({left: window.innerWidth}, 8000 + Math.floor(4000 * Math.random()), function(){
+        $(this).remove();
+    });
+};
+</script>
+</head>
+<body>
+</body>
+</html>

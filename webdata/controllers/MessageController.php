@@ -60,4 +60,10 @@ class MessageController extends Pix_Controller
         $ret->next_url = '/message/getmessage?channel=' . urlencode($channel_id) . '&after=' . $after;
         return $this->json($ret);
     }
+
+    public function barrageAction()
+    {
+        list(, /*message*/, /*barrage*/, $channel_id) = explode('/', $this->getURI());
+        $this->view->channel_id = $channel_id;
+    }
 }
