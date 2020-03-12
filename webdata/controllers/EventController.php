@@ -117,6 +117,7 @@ class EventController extends Pix_Controller
                     'Body' => file_get_contents($tmpfile . '.mp3'),
                     'ACL' => 'public-read',
                     'ContentType' => 'audio/mpeg',
+                    'CacheControl' => 'max-age=31536000,public'
                 ]);
                 unlink($tmpfile . '.mp3');
                 $data['voice_path'] = $path;
