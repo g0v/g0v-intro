@@ -26,9 +26,8 @@ $(function(){
     
 var shoot = function(message){
     var y = Math.floor(Math.random() * window.innerHeight);
-    var dom = $('<div>' + message.user + ':' + message.text + '</div>');
+    var dom = $('<div></div>').text(`${message.user}:${message.text}`).appendTo('body');
     dom.css({position: 'fixed', left: Math.floor(dom.width() * -1), top: y, width: dom.width()})
-       .appendTo('body')
        .animate({left: window.innerWidth}, 16000 + Math.floor(4000 * Math.random()), function(){
           $(this).remove();
        });
