@@ -442,7 +442,10 @@ function onRemoteTrack(track) {
 
 		if (old_track = $(`#audio-${participant}`).data('track')) {
 			old_track.detach($(`#audio-${participant}`)[0]);
-		}
+        }
+        if ($(`#member-${participant} .volume-status`).is('visible')) {
+            $(`#audio-${participant}`)[0].muted = true;
+        }
 		track.attach($(`#audio-${participant}`)[0]);
 		$(`#audio-${participant}`).data('track', track);
 
@@ -931,15 +934,16 @@ $('#member-list').on('click', '.microphone-status', function(e){
         return;
     }
     var audio_dom = $('#audio-' + id)[0];
-    if (!audio_dom) {
-        return;
-    }
     if ($('.volume-status', member_box_dom).is(':visible')) {
         $('.volume-status', member_box_dom).hide();
-        audio_dom.muted = false;
+        if (audio_dom) {
+            audio_dom.muted = false;
+        }
     } else {
         $('.volume-status', member_box_dom).show();
-        audio_dom.muted = true;
+        if (audio_dom) {
+            audio_dom.muted = true;
+        }
     }
 });
 
