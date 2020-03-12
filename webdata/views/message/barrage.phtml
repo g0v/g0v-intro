@@ -23,15 +23,29 @@ $(function(){
         }, 'json');
     }, 1000);
 });
+
 var shoot = function(message){
     var y = Math.floor(Math.random() * window.innerHeight);
-    var dom = $('<div></div>').text(message.user + ':' + message.text);
+    var vpWidth = window.innerWidth;
+    var dom = $('<div></div>').text(`${message.user}: ${message.text}`);
+    dom.appendTo('body')
+       .css({
+           position:'fixed', 
+           top: y, 
+           fontSize: '1.5em', 
+           fontFamily: '"Microsoft JhengHei", "微軟正黑體" sans-serif',
+           zIndex: 9999, 
+           fontWeight: 600,
+           color: 'white',
+           textShadow: '-1px 0 black, 1px 0 black, 0 1px black, 0 -1px black',
+           opacity: 0.66
+       });
 
-    $('body').append(dom);
-    dom.css({position: 'fixed', left: Math.floor($(dom).width() * -1), top: y, width: $(dom).width()});
-    dom.animate({left: window.innerWidth}, 8000 + Math.floor(4000 * Math.random()), function(){
-        $(this).remove();
-    });
+    var domWidth = dom.width();
+    dom.css({left: vpWidth, width: domWidth})
+        .animate({left: -domWidth}, 8000 + Math.floor(8000 * Math.random()), 'linear', function(){
+            dom.remove();
+        });
 };
 </script>
 </head>
