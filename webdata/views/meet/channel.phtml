@@ -830,6 +830,29 @@ $('#auth-microphone').change(function(e){
 	}
 });
 
+var check_video_stop = function(){
+    // force selectParticipant to refetch video if video stops
+    $('#member-list video').each(function(){
+        var video_dom = this;
+        var box_dom = $(this).parents('.member-box');
+        var id = box_dom.attr('id').split('-')[1];
+        if (id == 'me') {
+            return;
+        }
+        if (!$(this).data('prev_time')) {
+            $(this).data('prev_time', video_dom.currentTime);
+            return;
+        }
+
+        if ($(this).data('prev_time') == video_dom.currentTime) {
+            room.selectParticipant(id);
+        }
+        $(this).data('prev_time', video_dom.currentTime);
+    });
+};
+
+setInterval(check_video_stop, 3000);
+
 $('#member-list').on('click', '.member-box', function(e){
 	e.preventDefault();
     var id = $(this).attr('id').split('-')[1];
@@ -842,7 +865,8 @@ $('#member-list').on('click', '.member-box', function(e){
 	}
 
 	var track = $(this).data('video-track');
-	if (track && !track.muted) {
+    if (track && !track.muted) {
+        room.selectParticipant(id);
         track_video_attach(track);
         $('#main-area-video').addClass('has-video');
     } else {
