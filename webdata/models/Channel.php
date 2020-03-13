@@ -4,6 +4,10 @@ class ChannelRow extends Pix_Table_Row
 {
     public function canSee($user)
     {
+        if ($this->getData()->type == 3) {
+            return false; // channel is public
+        }
+
         if ($user and $user->type == 2) {
             return true; // admin can see all
         }
