@@ -444,7 +444,7 @@ function reportUserList()
             room.participants[id].getProperty('login_at')
         ]);
     }
-    $.post('/meet/reportuserlist/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_encode($this->channel->channel_id) ?>, 'data=' + encodeURIComponent(JSON.stringify(users)));
+    $.post('/meet/reportuserlist/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_encode($this->channel->channel_id) ?> + '?users=' + users.map(function(a) { return a[0]; }).join(','), 'data=' + encodeURIComponent(JSON.stringify(users)));
 }
 
 /**
