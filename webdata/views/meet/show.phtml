@@ -71,7 +71,7 @@ var update_channel_info = function(){
         $('#event-description').text(ret.event.data['meet-description']);
     }, 'json');
 }
-setInterval(update_channel_info, 10000);
+setInterval(update_channel_info, 30000);
 update_channel_info();
 </script>
 <?= $this->partial('common/footer.phtml', $this) ?>
