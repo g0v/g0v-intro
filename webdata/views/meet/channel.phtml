@@ -407,7 +407,8 @@ function onLocalTracks(tracks) {
         } else if (tracks[i].getType() == 'audio') {
 			$('#member-me').data('audio-track', tracks[i]);
 			$('#auth-microphone').prop('checked', true);
-			$('#member-me .microphone-status').removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
+            $('#member-me .microphone-status').removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
+            reattach_audio();
 			tracks[i].addEventListener(JitsiMeetJS.events.track.TRACK_AUDIO_LEVEL_CHANGED, function(audioLevel) {
 				level_changed('me', audioLevel);
 			});
