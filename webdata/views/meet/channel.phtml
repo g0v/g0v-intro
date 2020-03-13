@@ -355,6 +355,16 @@ function track_video_attach(track) {
 	track.attach($('#track-video')[0]);
 };
 
+var reattach_audio = function(){
+    $('audio.remote').each(function(){
+        var audio_dom = $(this);
+        var track = audio_dom.data('track');
+        if (track) {
+            track.attach(audio_dom[0]);
+        }
+    });
+};
+
 /**
  * Handles local tracks.
  * @param tracks Array with JitsiTrack objects
@@ -754,7 +764,8 @@ $.get('/meet/data/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_enco
 JitsiMeetJS.createLocalTracks({ devices: [ 'audio' ] })
 	.then(onLocalTracks)
 	.catch(error => {
-		add_toast('權限錯誤 Permission Error', '無法得到麥克風權限 Error obtaining microphone permission. ' + error, '#ff3333');
+        add_toast('權限錯誤 Permission Error', '無法得到麥克風權限 Error obtaining microphone permission. ' + error, '#ff3333');
+        add_toast('需要您按確認以聽到聲音', '因為您未提供麥克風權限，需要您按確認按鈕才能讓您聽到聲音', '#3333ff', reattach_audio);
 	});
 
 	if (JitsiMeetJS.mediaDevices.isDeviceChangeAvailable('output')) {
