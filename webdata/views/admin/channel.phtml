@@ -41,7 +41,7 @@ $orders[$prev_channel->order + 1] = "{$prev_channel->name} 後面";
             <?php } ?>
         </td>
         <td><?= $this->escape($channel->getStatus()->getMeta()->jitsi_room) ?></td>
-        <td><?= ["","公開","邀請"][$channel->getData()->type] ?></td>
+        <td><?= ["","公開","邀請","隱藏"][$channel->getData()->type] ?></td>
         <td><?= $this->escape(User::toUsersString($channel->getData()->owners)) ?></td>
         <td><?= $this->escape(User::toUsersString($channel->getData()->invite_list)) ?></td>
         <td>
