@@ -311,11 +311,20 @@ html {
 <script>
 /* global $, JitsiMeetJS */
 
-var add_toast = function(title, body, color){
+var add_toast = function(title, body, color, callback){
 	var dom = $($('#tmpl-toast').html());
 	$('.mr-auto', dom).text(title);
-	$('.toast-body', dom).text(body);
-	$('rect', dom).attr('fill', color);
+    $('.toast-body', dom).text(body);
+    if (callback) {
+        $('.toast-body', dom).append(
+            $('<form></form>').append($('<button type="submit">OK</button>')).submit(function(e){
+                e.preventDefault();
+                callback();
+                $(this).parents('.toast').find('.close').click();
+            })
+        );
+    }
+    $('rect', dom).attr('fill', color);
 	$('#toast-area').append(dom);
 	dom.toast('show');
 };
