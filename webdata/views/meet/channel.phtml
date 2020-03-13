@@ -948,7 +948,7 @@ var add_chat_message = function(id, text, ts, nick){
 		$('#chat-area .card-body').append(dom);
 	}
 	$('.content', dom).append($('<div></div>').text(text));
-	$('#chat-area .card-body').scrollTop($('#chat-area .card-body').height());
+    $('#chat-area .card-body').scrollTop($('#chat-area .card-body')[0].scrollHeight);
 
 	if (!$('#chat-switch').is('.active')) {
 		$('#chat-switch .badge').text(1 + parseInt($('#chat-switch .badge').text())).show();
