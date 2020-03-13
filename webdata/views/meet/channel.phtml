@@ -411,15 +411,28 @@ function onLocalTracks(tracks) {
             reattach_audio();
 			tracks[i].addEventListener(JitsiMeetJS.events.track.TRACK_AUDIO_LEVEL_CHANGED, function(audioLevel) {
 				level_changed('me', audioLevel);
-			});
+            });
+
 			if (isJoined) {
-				room.addTrack(tracks[i]);
-			} else {
+                room.addTrack(tracks[i]);
+                if (first_audio) {
+                    first_audio = false;
+                    var audio_track = tracks[i];
+                    audio_track.mute().then(function(){
+                        audio_track.dispose();
+                        $('#member-me').data('audio-track', null);
+                        $('#auth-microphone').prop('checked', false);
+                        $(`#member-me .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+                    });
+                }
+            } else {
 				pending_tracks.push(tracks[i]);
 			}
 		}
     }
 }
+
+var first_audio = true;
 
 function reportUserList()
 {
@@ -581,6 +594,7 @@ function onConferenceJoined() {
     room.setLocalParticipantProperty('slack_id', my_info.slack_id);
     room.setLocalParticipantProperty('login_at', (new Date()).getTime());
     room.setDisplayName(my_info.account);
+    room.setStartMutedPolicy({audio: true});
     update_member_list();
     reportUserList();
     setInterval(reportUserList, 60000);
@@ -619,6 +633,16 @@ function onConferenceJoined() {
     });
 	for (var track of pending_tracks) {
 		room.addTrack(track);
+                if (first_audio) {
+                    first_audio = false;
+                    var audio_track = track;
+                    audio_track.mute().then(function(){
+                        audio_track.dispose();
+                        $('#member-me').data('audio-track', null);
+                        $('#auth-microphone').prop('checked', false);
+                        $(`#member-me .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+                    });
+                }
 	}
 }
 
