@@ -148,6 +148,12 @@ class EventController extends Pix_Controller
         $this->view->api = '/event/data/' . $event_id;
     }
 
+    public function sliderunAction()
+    {
+        list(, /*event*/, /*sliderun*/, $event_id) = explode('/', $this->getURI());
+        $this->view->api = '/event/data/' . $event_id;
+    }
+
     public function userinfoAction()
     {
         list(, /*event*/, /*userinfo*/, $event_id) = explode('/', $this->getURI());
