@@ -10,3 +10,4 @@ License
 * [lib-jitsi-meet](https://github.com/jitsi/lib-jitsi-meet/) Apache License 2.0
 * [jQuery](https://jquery.org/license/) BSD License
 * [Bootstrap](https://getbootstrap.com/docs/4.0/about/license/) MIT License
+* [opus-media-recorder](https://github.com/kbumsik/opus-media-recorder/blob/master/LICENSE.md) MIT + BSD License
