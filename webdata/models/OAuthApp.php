@@ -4,12 +4,16 @@ class OAuthAppRow extends Pix_Table_Row
 {
     public function getData()
     {
-        return json_decode($this->data);
+        $data = json_decode($this->data);
+        if (!property_exists($data, 'redirect_urls')) {
+            $data->redirect_urls = array();
+        }
+        return $data;
     }
 
     public function updateData($data)
     {
-        $old_data = json_decode($this->data);
+        $old_data = $this->getData();
         foreach ($data as $k => $v) {
             $old_data->{$k} = $v;
         }
@@ -33,6 +37,7 @@ class OAuthApp extends Pix_Table
         // * name
         // * document
         // * client_secret
+        // * redirect_urls: array
         $this->_columns['data'] = array('type' => 'text');
 
         $this->addIndex('created_by', array('created_by'));
