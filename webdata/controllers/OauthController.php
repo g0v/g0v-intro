@@ -18,6 +18,16 @@ class OauthController extends Pix_Controller
 
     public function accesstokenAction()
     {
+        if ($_SERVER['HTTP_ORIGIN']) {
+            header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
+        }
+        header('Access-Control-Allow-Methods: POST');
+        header('Access-Control-Allow-Credentials: true');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization, x-requested-with');
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            return $this->json('');
+        }
+
         $client_id = $_REQUEST['client_id'];
         $code = $_REQUEST['code'];
         $redirect_uri = $_REQUEST['redirect_uri'];
