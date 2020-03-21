@@ -11,3 +11,8 @@ License
 * [jQuery](https://jquery.org/license/) BSD License
 * [Bootstrap](https://getbootstrap.com/docs/4.0/about/license/) MIT License
 * [opus-media-recorder](https://github.com/kbumsik/opus-media-recorder/blob/master/LICENSE.md) MIT + BSD License
+
+OAuth
+-----
+* [OAuth 2.0 for Browser-Based Apps](https://tools.ietf.org/html/draft-ietf-oauth-browser-based-apps-05)
+* [RFC7636 PKCE of OAuth 2.0](https://tools.ietf.org/html/rfc7636)
