@@ -9,55 +9,43 @@ class OauthController extends Pix_Controller
         }
     }
 
-    protected function accessTokenReturn($redirect_uri, $message)
+    protected function errorReturn($values)
     {
-        if ($redirect_uri and strpos($redirect_uri, '?')) {
-            $sep = '&';
-        } else {
-            $sep = '?';
-        }
+        header('HTTP/1.1 400 Bad Request', true, 400);
 
-        if ($redirect_uri) {
-            $terms = array();
-            foreach ($message as $k => $v) {
-                $terms[] = urlencode($k) . '=' . urlencode($v);
-            }
-            return $this->redirect($redirect_uri . $sep . implode('&', $terms));
-        } else {
-            return $this->json($message);
-        }
+        return $this->json($values);
     }
 
     public function accesstokenAction()
     {
-        $client_id = $_GET['client_id'];
-        $code = $_GET['code'];
-        $redirect_uri = $_GET['redirect_uri'];
-        $client_secret = $_GET['client_secret'];
+        $client_id = $_REQUEST['client_id'];
+        $code = $_REQUEST['code'];
+        $redirect_uri = $_REQUEST['redirect_uri'];
+        $client_secret = $_REQUEST['client_secret'];
+        $grant_type = $_REQUEST['grant_type'];
 
-
-        if (!$client_id or !$app = OAuthApp::find(intval($client_id))) {
-            return $this->accessTokenReturn($redirect_uri, array(
-                'error' => 'app_not_found',
-                'error_reason' => 'app not found',
+        if ($grant_type != 'authorization_code') {
+            return $this->errorReturn(array(
+                'error' => 'unsupported_grant_type',
+                'error_reason' => 'grant_type must be authorization_code',
             ));
         }
-        if (!$this->view->user) {
-            return $this->accessTokenReturn($redirect_uri, array(
-                'error' => 'need_login',
-                'error_reason' => '需要登入 Need to login first',
+
+        if (!$client_id or !$app = OAuthApp::find(intval($client_id))) {
+            return $this->errorReturn(array(
+                'error' => 'invalid_client',
+                'error_reason' => 'app not found',
             ));
         }
 
         $session_code = OAuthSessionCode::search(array(
             'app_id' => intval($client_id),
-            'slack_id' => strval($this->view->user->slack_id),
             'code' => strval($code),
         ))->first();
 
         if (!$session_code) {
-            return $this->accessTokenReturn($redirect_uri, array(
-                'error' => 'code_not_found',
+            return $this->errorReturn(array(
+                'error' => 'invalid_grant',
                 'error_reason' => '找不到代碼 code not found',
             ));
         }
@@ -66,39 +54,46 @@ class OauthController extends Pix_Controller
             // PKCE https://tools.ietf.org/html/rfc7636
             if ($session_code->getData()->code_challenge_method == 'plain') {
                 if ($session_code->getData()->code_challenge != $_GET['code_verifier']) {
-                    return $this->accessTokenReturn($redirect_uri, array(
-                        'error' => 'pkce_error',
+                    return $this->errorReturn(array(
+                        'error' => 'invalid_request',
                         'error_reason' => 'wrong code_verifier',
                     ));
                 }
             } else if ($session_code->getData()->code_challenge_method == 'S256') {
                 if (rtrim(strtr(base64_encode(hex2bin(hash('sha256', $_GET['code_verifier']))), '+/', '-_'), '=') != $session_code->getData()->code_challenge) {
-                    return $this->accessTokenReturn($redirect_uri, array(
-                        'error' => 'pkce_error',
+                    return $this->errorReturn($redirect_uri, array(
+                        'error' => 'invalid_request',
                         'error_reason' => 'wrong code_verifier',
                     ));
                 };
             } else {
-                return $this->accessTokenReturn($redirect_uri, array(
-                    'error' => 'pkce_error',
+                return $this->errorReturn(array(
+                    'error' => 'invalid_request',
                     'error_reason' => 'unknown code_challenge_method',
                 ));
             }
         }
 
+        if ($session_code->getData()->redirect_uri != $redirect_uri) {
+            return $this->errorReturn(array(
+                'error' => 'invalid_request',
+                'error_reason' => 'redirect_uri is wrong',
+            ));
+        }
+
+        $slack_id = $session_code->slack_id;
         $session_code->delete();
 
         $access_token = OAuthSession::getNewAccessToken();
         OAuthSession::insert(array(
             'access_token' => $access_token,
             'app_id' => intval($client_id),
-            'slack_id' => strval($this->view->user->slack_id),
+            'slack_id' => strval($slack_id),
             'created_at' => time(),
             'data' => '{}',
         ));
 
-        return $this->accessTokenReturn($redirect_uri, array(
-            'error' => false,
+        return $this->json(array(
             'access_token' => $access_token,
         ));
     }
@@ -123,7 +118,7 @@ class OauthController extends Pix_Controller
         }
         if ($state) {
             $redirect_uri .= $sep . 'state=' . urlencode($state);
-            $state = '&';
+            $sep = '&';
         }
 
         if (!$client_id or !$app = OAuthApp::find(intval($client_id))) {
@@ -136,6 +131,7 @@ class OauthController extends Pix_Controller
 
         if ($app->getData()->redirect_urls) {
             if (!in_array($_GET['redirect_uri'], $app->getData()->redirect_urls)) {
+                error_log($redirect_uri . $sep . 'error=invalid_request&error_description=' . urlencode("redirect_uri is not in redirect urls"));
                 return $this->redirect($redirect_uri . $sep . 'error=invalid_request&error_description=' . urlencode("redirect_uri is not in redirect urls"));
             }
         }
@@ -145,7 +141,7 @@ class OauthController extends Pix_Controller
         }
 
         // clean old code
-        OAuthSessionCode::search(array('app_id' => intval($client_id)))->search("created_at < " . time() - 86400)->delete();
+        OAuthSessionCode::search(array('app_id' => intval($client_id)))->search("created_at < " . time() - 3600)->delete();
 
         $code = OAuthSessionCode::insert(array(
             'app_id' => intval($client_id),
@@ -154,6 +150,7 @@ class OauthController extends Pix_Controller
             'data' => json_encode(array(
                 'code_challenge' => strval($code_challenge),
                 'code_challenge_method' => strval($code_challenge_method),
+                'redirect_uri' => $_GET['redirect_uri'],
             )),
             'created_at' => time(),
         ));
