@@ -141,7 +141,6 @@ class OauthController extends Pix_Controller
 
         if ($app->getData()->redirect_urls) {
             if (!in_array($_GET['redirect_uri'], $app->getData()->redirect_urls)) {
-                error_log($redirect_uri . $sep . 'error=invalid_request&error_description=' . urlencode("redirect_uri is not in redirect urls"));
                 return $this->redirect($redirect_uri . $sep . 'error=invalid_request&error_description=' . urlencode("redirect_uri is not in redirect urls"));
             }
         }
