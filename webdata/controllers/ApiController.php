@@ -71,5 +71,23 @@ class ApiController extends Pix_Controller
 
     public function eventAction()
     {
+        return $this->_subRouter();
+    }
+
+    public function event_listAction()
+    {
+        $ret = new StdClass;
+        $ret->error = false;
+        $ret->data = array();
+
+        foreach (Event::search(1) as $event) {
+            $ret->data[] = array(
+                'name' => $event->name,
+                'id' => $event->id,
+                'intro_count' => count(Intro::search(array('event' => $event->id))),
+                'status' => $event->status,
+            );
+        }
+        return $this->json($ret);
     }
 }
