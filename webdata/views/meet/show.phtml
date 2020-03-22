@@ -42,9 +42,9 @@ var get_user_list = function(users, user_infos){
 };
 var update_channel_info = function(){
     var event_id = <?= json_encode($this->event->id) ?>;
-    $.get('/meet/eventdata/' + event_id, function(ret){
+    $.get('/api/event/channel?event_id=' + encodeURIComponent(event_id), function(ret){
         $('.channel-tr').addClass('checking');
-        for (var channel of ret.channels) {
+        for (var channel of ret.data.channels) {
             if (!$('#channel-' + channel.channel_id).length) {
                 var dom = $($('#tmpl-channel-tr').html());
                 dom.attr('id', 'channel-' + channel.channel_id);
@@ -58,8 +58,8 @@ var update_channel_info = function(){
             } else {
                 $('.hackmd-link', dom).hide();
             }
-            $('.owner-list', dom).html(get_user_list(channel.data.owners, ret.users));
-            $('.member-list', dom).html(get_user_list(channel.status.user_list.sort(function(a,b){ return a[1] - b[1]; }).map(function(a) { return a[0]; }), ret.users));
+            $('.owner-list', dom).html(get_user_list(channel.data.owners, ret.data.users));
+            $('.member-list', dom).html(get_user_list(channel.status.user_list.sort(function(a,b){ return a[1] - b[1]; }).map(function(a) { return a[0]; }), ret.data.users));
             dom.removeClass('checking');
             dom.data('order', channel.order);
         }
@@ -68,7 +68,7 @@ var update_channel_info = function(){
             return parseInt($(a).data('order')) - parseInt($(b).data('order'));
         }).appendTo('#channel-list');
 
-        $('#event-description').text(ret.event.data['meet-description']);
+        $('#event-description').text(ret.data.event.data['meet-description']);
     }, 'json');
 }
 setInterval(update_channel_info, 30000);
