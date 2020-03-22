@@ -36,22 +36,36 @@ class ApiController extends Pix_Controller
         $intros = array();
         foreach (Intro::search(array('created_by' => $user->slack_id)) as $intro) {
             $data = json_decode($intro->data);
-            $intros[] = array(
-                'event' => $intro->event,
-                'keyword' => $data->keyword,
-                'voice_path' => $data->voice_path,
-                'created_at' => date('c', $intro->created_at),
+            $intros[$intro->event] = array(
+                'intro' => array(
+                    'keyword' => $data->keyword,
+                    'voice_path' => $data->voice_path,
+                    'created_at' => date('c', $intro->created_at),
+                ),
             );
+        }
+
+        if ($intros) {
+            foreach (Event::search(1)->searchIn('id', array_keys($intros)) as $event) {
+                $intros[$event->id]['event'] = array(
+                    'name' => $event->name,
+                    'id' => $event->id,
+                    'intro_count' => count(Intro::search(array('event' => $event->id))),
+                    'status' => $event->status,
+                );
+            }
         }
 
         return $this->json(array(
             'error' => false,
             'data' => array(
-                'slack_id' => $user->slack_id,
-                'account' => $user->account,
-                'display_name' => $user->getDisplayName(),
-                'avatar' => $user->getImage(),
-                'intros' => $intros,
+                'user' => array(
+                    'slack_id' => $user->slack_id,
+                    'account' => $user->account,
+                    'display_name' => $user->getDisplayName(),
+                    'avatar' => $user->getImage(),
+                ),
+                'intros' => array_values($intros),
             ),
         ));
     }
