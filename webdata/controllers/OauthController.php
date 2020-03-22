@@ -234,4 +234,27 @@ class OauthController extends Pix_Controller
         }
         $this->view->app = $app;
     }
+
+    public function mysessionAction()
+    {
+        if (!$this->view->user) {
+            return $this->alert("需要登入 You need to login first", "/login?next=/oauth/mysession");
+        }
+    }
+
+    public function revokeAction()
+    {
+        if (!$_POST['sToken'] or $_POST['sToken'] != Session::getStoken()) {
+            return $this->alert("sToken error", "/oauth");
+        }
+        if (!$this->view->user) {
+            return $this->alert("需要登入 You need to login first", "/login?next=/oauth/mysession");
+        }
+        if (!$app = OAuthApp::find(intval($_GET['app_id']))) {
+            return $this->alert("找不到 App, App not found", "/oauth/mysession");
+        }
+        OAuthSession::search(array('app_id' => $_GET['app_id'], 'slack_id' => $this->view->user->slack_id))->delete();
+        return $this->alert("OK", "/oauth/mysession");
+    }
+
 }

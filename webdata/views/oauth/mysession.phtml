@@ -1,0 +1,30 @@
+<?= $this->partial('common/header.phtml', $this) ?>
+<h1>已安裝應用程式 Installed App</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>App Name</th>
+            <th>安裝時間 Install Time</th>
+            <th>動作 Action</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php $showed = new StdClass; ?>
+    <?php foreach (OAuthSession::search(array('slack_id' => $this->user->slack_id))->order('app_id, created_at ASC') as $session) { ?>
+    <?php if (property_exists($showed, $session->app_id)) { continue; } ?>
+    <?php $showed->{$session->app_id} = true ?>
+    <?php $app = OAuthApp::find($session->app_id) ?>
+    <tr>
+        <td><?= $this->escape($app->getData()->name) ?></td>
+        <td><?= date('c', $session->created_at) ?></td>
+        <td>
+            <form method="post" action="/oauth/revoke?app_id=<?= $session->app_id ?>">
+                <input type="hidden" name="sToken" value="<?= Session::getStoken() ?>">
+                <button type="submit">移除 Revoke</button>
+            </form>
+        </td>
+    </tr>
+    <?php } ?>
+    </tbody>
+</table>
+<?= $this->partial('common/footer.phtml', $this) ?>
