@@ -51,32 +51,6 @@ class EventController extends Pix_Controller
         return $this->noview();
     }
 
-    public function dataAction()
-    {
-        list(, /*event*/, /*data*/, $id) = explode('/', $this->getURI());
-        if (!$event = Event::find(strval($id))) {
-            return $this->alert("{$id} not found", '/');
-        }
-
-        $ret = array();
-        foreach (Intro::search(array('event' => $id))->order('created_at ASC') as $intro) {
-            $data = json_decode($intro->data);
-            $obj = new StdClass;
-            $obj->created_at = $intro->created_at;
-            $obj->keyword = $data->keyword;
-            $obj->voice_path = $data->voice_path;
-            $user = User::find($intro->created_by);
-            $obj->display_name = $user->getDisplayName();
-            $obj->avatar = $user->getImage();
-            $obj->account = $user->account;
-            $ret[] = $obj;
-        }
-        header('Access-Control-Allow-Origin: *');
-        header('Access-Control-Allow-Methods: GET');
-        return $this->json($ret);
-    }
-
-
     public function saveintroAction()
     {
         list(, /*event*/, /*saveintro*/, $id) = explode('/', $this->getURI());
@@ -145,13 +119,13 @@ class EventController extends Pix_Controller
     public function slideAction()
     {
         list(, /*event*/, /*slide*/, $event_id) = explode('/', $this->getURI());
-        $this->view->api = '/event/data/' . $event_id;
+        $this->view->api = 'https://' . $_SERVER['HTTP_HOST'] . '/api/event/intro/?event_id=' . urlencode($event_id);
     }
 
     public function sliderunAction()
     {
         list(, /*event*/, /*sliderun*/, $event_id) = explode('/', $this->getURI());
-        $this->view->api = '/event/data/' . $event_id;
+        $this->view->api = 'https://' . $_SERVER['HTTP_HOST'] . '/api/event/intro/?event_id=' . urlencode($event_id);
     }
 
     public function userinfoAction()

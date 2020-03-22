@@ -11,13 +11,13 @@
 <script>
 $(function(){
 	$.get(<?= json_encode($this->api) ?>, function(ret){
-		for (var i = 0; i < ret.length; i ++) {
-			intro = ret[i];
+		for (var i = 0; i < ret.data.length; i ++) {
+            intro = ret.data[i];
 			var dom = $($('#tmpl-slide').html());
-			$('img', dom).attr('src', intro.avatar);
-			$('h5', dom).text('@' + intro.account);
-			$('p', dom).text(intro.keyword);
-			$('.no', dom).text((i + 1) + '/' + ret.length);
+			$('img', dom).attr('src', intro.user.avatar);
+			$('h5', dom).text('@' + intro.user.account);
+			$('p', dom).text(intro.intro.keyword);
+			$('.no', dom).text((i + 1) + '/' + ret.data.length);
 			dom.data('data', intro);
 			$('.carousel-inner').append(dom);
 		}
@@ -38,13 +38,13 @@ $(function(){
 
 var play = function(dom){
 	var data = dom.data('data');
-	if (data.voice_path) {
+	if (data.intro.voice_path) {
 		var audio_dom = $('<audio></audio>');
-		audio_dom[0].src = 'https://g0v-intro.s3-ap-northeast-1.amazonaws.com/' + data.voice_path;
+		audio_dom[0].src = 'https://g0v-intro.s3-ap-northeast-1.amazonaws.com/' + data.intro.voice_path;
 		audio_dom[0].play();
     } else {
         speechSynthesis.cancel();
-		speechSynthesis.speak(new SpeechSynthesisUtterance(data.display_name + ' ' + data.keyword));
+		speechSynthesis.speak(new SpeechSynthesisUtterance(data.user.display_name + ' ' + data.intro.keyword));
 	}
 };
 

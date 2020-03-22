@@ -131,7 +131,7 @@ recordButton.addEventListener('click', recordButtonClick);
 <hr>
 <h2>其他人的自介 g0ver's Intro</h2>
 <a href="/event/downloadcsv/<?= $this->event->id ?>">下載成 CSV Download as CSV</a>
-<a href="/event/data/<?= $this->event->id ?>">API</a>
+<a href="/api/event/intro/?event_id=<?= urlencode($this->event->id) ?>">API</a>
 <style>
 @media (min-width: 576px) {  .card-columns { column-count: 2; } } @media (min-width: 768px) { .card-columns {  column-count: 3; } }  @media (min-width: 992px) { .card-columns {  column-count: 4; } }  @media (min-width: 1200px) { .card-columns {  column-count: 5; } }
 </style>

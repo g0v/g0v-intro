@@ -11,13 +11,13 @@
 <script>
 $(function(){
 	$.get(<?= json_encode($this->api) ?>, function(ret){
-		for (var i = 0; i < ret.length; i ++) {
-			intro = ret[i];
+		for (var i = 0; i < ret.data.length; i ++) {
+            intro = ret.data[i];
 			var dom = $($('#tmpl-slide').html());
-			$('img', dom).attr('src', intro.avatar);
-			$('h5', dom).text('@' + intro.account);
-			$('p', dom).text(intro.keyword);
-			$('.no', dom).text((i + 1) + '/' + ret.length);
+			$('img', dom).attr('src', intro.user.avatar);
+			$('h5', dom).text('@' + intro.user.account);
+			$('p', dom).text(intro.intro.keyword);
+			$('.no', dom).text((i + 1) + '/' + ret.data.length);
 			dom.data('data', intro);
 			$('.carousel-inner').append(dom);
 		}
