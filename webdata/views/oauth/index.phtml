@@ -5,6 +5,7 @@
         <tr>
             <th>ID</th>
             <th>App Name</th>
+            <th>安裝人數 User count</th>
             <th>動作 Action</th>
         </tr>
     </thead>
@@ -13,6 +14,7 @@
     <tr>
         <td><a href="/oauth/app?id=<?= urlencode($app->client_id) ?>"><?= $this->escape($app->client_id) ?></a></td>
         <td><?= $this->escape($app->getData()->name) ?></td>
+        <td><?= count(OAuthSession::search(array('app_id' => $app->client_id))) ?></td>
         <td></td>
     </tr>
     <?php } ?>
