@@ -56,6 +56,19 @@ class ApiController extends Pix_Controller
         ));
     }
 
+    protected function _subRouter()
+    {
+        list(, /*api*/, $main, $sub) = explode('/', $this->getURI());
+        if (!is_callable(array($this, "{$main}_{$sub}Action"))) {
+            header('HTTP/1.1 404 Not Found', true, 404);
+            return $this->json(array(
+                'error' => true,
+                'message' => "method not found: {$main}/{$sub}",
+            ));
+        }
+        return $this->{"{$main}_{$sub}Action"}();
+    }
+
     public function eventAction()
     {
     }
