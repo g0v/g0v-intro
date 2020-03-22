@@ -1,0 +1,22 @@
+<?= $this->partial('common/header.phtml', $this) ?>
+<div class="card">
+    <div class="card-header"> OAuth 認證 </div>
+    <div class="card-body">
+        <h5 class="card-title">「<?= $this->escape($this->app->getData()->name) ?>」 需要您的授權。 </h5>
+        <h5 class="card-title">"<?= $this->escape($this->app->getData()->name) ?>" is requesting permission to access your jothon online.</h5>
+        <p class="card-text">
+        <div>「<?= $this->escape($this->app->getData()->name) ?>」將可以做些什麼呢？</div>
+        <div>What will "<?= $this->escape($this->app->getData()->name) ?>" be able to do?</div>
+        <ul>
+            <li>設定您的自我介紹 Update your introduction.</li>
+            <li>以您的身份加入頻道聊天 Use your identity to join the channel.</li>
+            <li>看到您被邀請的非公開頻道 Get the private channels you are invited.</li>
+        </ul>
+        </p>
+        <form method="post">
+            <input type="hidden" name="sToken" value="<?= Session::getStoken() ?>">
+            <button type="submit" name="confirm" value="0" class="btn btn-light">取消 Cancel</button>
+            <button type="submit" name="confirm" value="1" class="btn btn-success">同意 Allow</button>
+    </div>
+</div>
+<?= $this->partial('common/footer.phtml', $this) ?>

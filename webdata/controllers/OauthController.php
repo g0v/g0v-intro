@@ -155,21 +155,27 @@ class OauthController extends Pix_Controller
         // clean old code
         OAuthSessionCode::search(array('app_id' => intval($client_id)))->search("created_at < " . time() - 3600)->delete();
 
-        $code = OAuthSessionCode::insert(array(
-            'app_id' => intval($client_id),
-            'slack_id' => $this->view->user->slack_id,
-            'code' => Helper::uniqid(16),
-            'data' => json_encode(array(
-                'code_challenge' => strval($code_challenge),
-                'code_challenge_method' => strval($code_challenge_method),
-                'redirect_uri' => $_GET['redirect_uri'],
-            )),
-            'created_at' => time(),
-        ));
+        if ($_POST['sToken'] == Session::getStoken()) {
+            if ($_POST['confirm'] == 0) {
+                return $this->redirect($redirect_uri . $sep . 'error=access_denied&error_description=' . urlencode("user denied the request"));
+            }
 
+            $code = OAuthSessionCode::insert(array(
+                'app_id' => intval($client_id),
+                'slack_id' => $this->view->user->slack_id,
+                'code' => Helper::uniqid(16),
+                'data' => json_encode(array(
+                    'code_challenge' => strval($code_challenge),
+                    'code_challenge_method' => strval($code_challenge_method),
+                    'redirect_uri' => $_GET['redirect_uri'],
+                )),
+                'created_at' => time(),
+            ));
 
-        $redirect_uri .= $sep . 'code=' . urlencode($code->code);
-        return $this->redirect($redirect_uri);
+            $redirect_uri .= $sep . 'code=' . urlencode($code->code);
+            return $this->redirect($redirect_uri);
+        }
+        $this->view->app = $app;
     }
 
     public function indexAction()
