@@ -20,7 +20,7 @@ class LoginController extends Pix_Controller
             urlencode($client_id), // client_id
             'identity.basic,identity.avatar', // scope
             urlencode($redirect_uri), // redirect_uri
-            $_GET['next'], // state
+            urlencode($_GET['next']), // state
             "" // team
         );
         return $this->redirect($url);
