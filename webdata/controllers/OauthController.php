@@ -4,6 +4,9 @@ class OauthController extends Pix_Controller
 {
     public function init()
     {
+        header('Pragma: no-cache');
+        header('Cache-Control: no-store');
+
         if ($user_id = Pix_Session::get('user_id') and $user = User::find($user_id)) {
             $this->view->user = $user;
         }
