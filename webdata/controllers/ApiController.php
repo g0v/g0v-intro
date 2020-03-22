@@ -45,11 +45,14 @@ class ApiController extends Pix_Controller
         }
 
         return $this->json(array(
-            'slack_id' => $user->slack_id,
-            'account' => $user->account,
-            'display_name' => $user->getDisplayName(),
-            'avatar' => $user->getImage(),
-            'intros' => $intros,
+            'error' => false,
+            'data' => array(
+                'slack_id' => $user->slack_id,
+                'account' => $user->account,
+                'display_name' => $user->getDisplayName(),
+                'avatar' => $user->getImage(),
+                'intros' => $intros,
+            ),
         ));
     }
 
