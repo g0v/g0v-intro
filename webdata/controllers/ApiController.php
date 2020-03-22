@@ -90,4 +90,38 @@ class ApiController extends Pix_Controller
         }
         return $this->json($ret);
     }
+
+    public function event_introAction()
+    {
+        $ret = new StdClass;
+        $ret->error = false;
+        $ret->data = array();
+
+        if (!$event = Event::find(strval($_GET['event_id']))) {
+            header('HTTP/1.1 404 Not Found', true, 404);
+            return $this->json(array(
+                'error' => true,
+                'message' => "Event {$_GET['event_id']} not found",
+            ));
+        }
+
+        foreach (Intro::search(array('event' => $event->id))->order('created_at ASC') as $intro) {
+            $data=  json_Decode($intro->data);
+            $ret->data[] = array(
+                'user' => array(
+                    'slack_id' => $intro->user->slack_id,
+                    'account' => $intro->user->account,
+                    'display_name' => $intro->user->getDisplayName(),
+                    'avatar' => $intro->user->getImage(),
+                ),
+                'intro' => array(
+                   'keyword' => $data->keyword,
+                   'voice_path' => $data->voice_path,
+                   'created_at' => date('c', $intro->created_at),
+                ),
+            );
+        }
+
+        return $this->json($ret);
+    }
 }
