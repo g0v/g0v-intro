@@ -12,6 +12,7 @@
             <li>以您的身份加入頻道聊天 Use your identity to join the channel.</li>
             <li>看到您被邀請的非公開頻道 Get the private channels you are invited.</li>
         </ul>
+        <a href="<?= $this->escape($this->app->getData()->document) ?>" target="_blank">更多關於「<?= $this->escape($this->app->getData()->name) ?>」。More about "<?= $this->escape($this->app->getData()->name) ?>"</a>
         </p>
         <form method="post">
             <input type="hidden" name="sToken" value="<?= Session::getStoken() ?>">
