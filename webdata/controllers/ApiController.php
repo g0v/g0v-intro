@@ -138,4 +138,86 @@ class ApiController extends Pix_Controller
 
         return $this->json($ret);
     }
+
+    public function event_channelAction()
+    {
+        $ret = new StdClass;
+        $ret->error = false;
+        $ret->data = new StdClass;
+
+        if (!$event = Event::find(strval($_GET['event_id']))) {
+            header('HTTP/1.1 404 Not Found', true, 404);
+            return $this->json(array(
+                'error' => true,
+                'message' => "Event {$_GET['event_id']} not found",
+            ));
+        }
+
+        $ret->data->event = array(
+            'name' => $event->name,
+            'id' => $event->id,
+            'intro_count' => count(Intro::search(array('event' => $event->id))),
+            'status' => $event->status,
+        );
+
+        $ret->data->channels = array();
+        $ret->data->users = array();
+
+        foreach (Channel::search(array('event_id' => $event->id)) as $channel) {
+            if (!$channel->canSee($this->view->user)) {
+                continue;
+            }
+            $ret->data->channels[$channel->channel_id] = array(
+                'channel_id' => intval($channel->channel_id),
+                'data' => $channel->getData(),
+                'order' => $channel->order,
+                'name' => $channel->name,
+            );
+            foreach ($ret->data->channels[$channel->channel_id]['data']->owners as $id) {
+                $users[$id] = true;
+            }
+            foreach ($ret->data->channels[$channel->channel_id]['data']->invite_list as $id) {
+                $users[$id] = true;
+            }
+        }
+
+        if ($ret->data->channels) {
+            foreach (ChannelStatus::search(1)->searchIn('channel_id', array_keys($ret->data->channels)) as $channel_status) {
+                $ret->data->channels[$channel_status->channel_id]['meta'] = $channel_status->getMeta();
+                $ret->data->channels[$channel_status->channel_id]['status'] = $channel_status->getData();
+                if ($ret->data->channels[$channel_status->channel_id]['status']->user_reported_at < time() - 5 * 60) {
+                    $ret->data->channels[$channel_status->channel_id]['status']->user_list = array();
+                } elseif (!property_exists($ret->data->channels[$channel_status->channel_id]['status'], 'user_list')) {
+                    $ret->data->channels[$channel_status->channel_id]['status']->user_list = array();
+                }
+
+                foreach ($ret->data->channels[$channel_status->channel_id]['status']->user_list as $list) {
+                    $users[$list[0]] = true;
+                }
+            }
+        }
+
+        if ($users) {
+            foreach (User::search(1)->searchIn('slack_id', array_keys($users)) as $user) {
+                $ret->data->users[$user->slack_id] = array(
+                    'slack_id' => $user->slack_id,
+                    'account' => $user->account,
+                    'display_name' => $user->getDisplayName(),
+                    'avatar' => $user->getImage(),
+                );
+            }
+            foreach (Intro::search(array('event' => $event->id))->searchIn('created_by', array_keys($users)) as $intro) {
+                $data = json_decode($intro->data);
+                $ret->data->users[$intro->created_by]['intro'] = array(
+                    'keyword' => $data->keyword,
+                    'voice_path' => $data->voice_path,
+                    'created_at' => date('c', $intro->created_at),
+                );
+            }
+        }
+
+        $ret->data->channels = array_values($ret->data->channels);
+        $ret->data->users = array_values($ret->data->users);
+        return $this->json($ret);
+    }
 }
