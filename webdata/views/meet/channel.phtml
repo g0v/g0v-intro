@@ -592,10 +592,6 @@ var level_changed = function(participant, audioLevel) {
 let isJoined = false;
 function onConferenceJoined() {
 	isJoined = true;
-    room.setLocalParticipantProperty('slack_id', my_info.slack_id);
-    room.setLocalParticipantProperty('login_at', (new Date()).getTime());
-    room.setDisplayName(my_info.account);
-    room.setStartMutedPolicy({audio: true});
     update_member_list();
     reportUserList();
     setInterval(reportUserList, 60000);
@@ -652,6 +648,10 @@ function onConferenceJoined() {
  */
 function onConnectionSuccess() {
     room = connection.initJitsiConference(meet_info.jitsi_room, confOptions);
+    room.setLocalParticipantProperty('slack_id', my_info.slack_id);
+    room.setLocalParticipantProperty('login_at', (new Date()).getTime());
+    room.setDisplayName(my_info.account);
+    room.setStartMutedPolicy({audio: true});
     room.on(JitsiMeetJS.events.conference.TRACK_ADDED, onRemoteTrack);
     room.on(JitsiMeetJS.events.conference.TRACK_REMOVED, track => {
         console.log(`track removed!!!${track}`);
