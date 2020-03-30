@@ -511,6 +511,22 @@ var update_member_list = function(){
         if (null !== participant.getProperty('slack_id')) {
             names.push(participant.getProperty('slack_id'));
         }
+        if (!$('#member-' + id).length) {
+            var member_box = $($('#tmpl-member-box').html());
+            member_box.attr('id', `member-${id}`);
+            member_box.attr('title', `member-${id}`);
+            if (participant.isAudioMuted()) {
+                $('.microphone-status', member_box).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+            } else {
+                $('.microphone-status', member_box).removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
+            }
+            if (participant.isVideoMuted()) {
+                $('.video-status', member_box).removeClass('fa-video').addClass('fa-video-slash');
+            } else {
+                $('.video-status', member_box).removeClass('fa-video-slash').addClass('fa-video');
+            }
+            $('#member-list').append(member_box);
+        }
     }
 
     $.get('/event/userinfo/' + <?= json_encode($this->event->id) ?> + '?users=' + encodeURIComponent(names.join(',')), function(ret){
@@ -520,22 +536,6 @@ var update_member_list = function(){
 
         for (var id in room.participants) {
             var participant = room.participants[id];
-            if (!$('#member-' + id).length) {
-                var member_box = $($('#tmpl-member-box').html());
-                member_box.attr('id', `member-${id}`);
-                member_box.attr('title', `member-${id}`);
-				if (participant.isAudioMuted()) {
-					$('.microphone-status', member_box).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
-				} else {
-					$('.microphone-status', member_box).removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
-				}
-				if (participant.isVideoMuted()) {
-					$('.video-status', member_box).removeClass('fa-video').addClass('fa-video-slash');
-				} else {
-					$('.video-status', member_box).removeClass('fa-video-slash').addClass('fa-video');
-                }
-                $('#member-list').append(member_box);
-            }
             $(`#member-${id}`).removeClass('checking');
             if (null !== participant.getProperty('slack_id') && 'undefined' !== typeof(user_info[participant.getProperty('slack_id')])) {
                 var info = user_info[participant.getProperty('slack_id')];
