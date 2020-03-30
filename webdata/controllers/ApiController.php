@@ -220,4 +220,130 @@ class ApiController extends Pix_Controller
         $ret->data->users = array_values($ret->data->users);
         return $this->json($ret);
     }
+
+    public function rpgAction()
+    {
+        return $this->_subRouter();
+    }
+
+    public function rpg_getroomAction()
+    {
+        if (!$room = RPGRoom::find_by_room_name(strval($_GET['room']))) {
+            header('HTTP/1.1 404 Not Found', true, 404);
+            return $this->json(array(
+                'error' => true,
+                'message' => "room not found",
+            ));
+        }
+
+        $ret = new StdClass;
+        $ret->error = false;
+        $ret->data = new StdClass;
+        $ret->data->room_data = array(
+            'updated_at' => intval($room->updated_at),
+            'data' => json_decode($room->data),
+        );
+        $ret->data->objects = array();
+        foreach (RPGRoomObject::search(array('room_id' => $room->room_id)) as $object) {
+            $ret->data->objects[] = array(
+                'object_id' => intval($object->room_object_id),
+                'data' => json_decode($object->data),
+            );
+        }
+        return $this->json($ret);
+    }
+
+    public function rpg_updateroomAction()
+    {
+        $now = time();
+        if ($room = RPGRoom::find_by_room_name(strval($_GET['room']))) {
+            $room->update(array(
+                'updated_at' => $now,
+                'data' => strval($_POST['data']),
+            ));
+        } else {
+            RPGRoom::insert(array(
+                'room_name' => strval($_GET['room']),
+                'updated_at' => $now,
+                'data' => strval($_POST['data']),
+            ));
+        }
+        return $this->json(array(
+            'error' => false,
+            'updated_at' => $now,
+        ));
+    }
+
+    public function rpg_addobjectAction()
+    {
+        if (!$room = RPGRoom::find_by_room_name(strval($_GET['room']))) {
+            header('HTTP/1.1 404 Not Found', true, 404);
+            return $this->json(array(
+                'error' => true,
+                'message' => "room not found",
+            ));
+        }
+        RPGRoomObject::insert(array(
+            'room_id' => $room->room_id,
+            'data' => strval($_POST['data']),
+        ));
+        $t = time();
+        $room->update(array('updated_at' => $t));
+        return $this->json(array(
+            'error' => false,
+            'updated_at' => $t,
+        ));
+    }
+
+    public function rpg_deleteobjectAction()
+    {
+        if (!$room = RPGRoom::find_by_room_name(strval($_GET['room']))) {
+            header('HTTP/1.1 404 Not Found', true, 404);
+            return $this->json(array(
+                'error' => true,
+                'message' => "room not found",
+            ));
+        }
+        if (!$object = RPGRoomObject::search(array('room_id' => $room->room_id, 'room_object_id' => intval($_GET['room_object_id'])))) {
+            header('HTTP/1.1 404 Not Found', true, 404);
+            return $this->json(array(
+                'error' => true,
+                'message' => "room not found",
+            ));
+        }
+        $object->delete();
+        $t = time();
+        $room->update(array('updated_at' => $t));
+        return $this->json(array(
+            'error' => false,
+            'updated_at' => $t,
+        ));
+    }
+
+    public function rpg_updateobjectAction()
+    {
+        if (!$room = RPGRoom::find_by_room_name(strval($_GET['room']))) {
+            header('HTTP/1.1 404 Not Found', true, 404);
+            return $this->json(array(
+                'error' => true,
+                'message' => "room not found",
+            ));
+        }
+        if (!$object = RPGRoomObject::search(array('room_id' => $room->room_id, 'room_object_id' => intval($_GET['room_object_id'])))) {
+            header('HTTP/1.1 404 Not Found', true, 404);
+            return $this->json(array(
+                'error' => true,
+                'message' => "room not found",
+            ));
+        }
+        $object->update(arraY(
+            'data' => strval($_POST['data']),
+        ));
+        $t = time();
+        $room->update(array('updated_at' => $t));
+        return $this->json(array(
+            'error' => false,
+            'updated_at' => $t,
+        ));
+    }
 }
