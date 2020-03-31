@@ -19,6 +19,8 @@ class ApiController extends Pix_Controller
             $access_token = explode(' ', $_SERVER['HTTP_AUTHORIZATION'], 2)[1];
             $session = OAuthSession::find($access_token);
             $this->view->user = User::find($session->slack_id);
+        } else if ($user_id = Pix_Session::get('user_id') and $user = User::find($user_id)) {
+            $this->view->user = $user;
         }
     }
 
