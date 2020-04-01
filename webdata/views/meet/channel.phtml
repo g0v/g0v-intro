@@ -554,6 +554,8 @@ var level_changed = function(participant, audioLevel) {
 };
 
 function onConferenceJoined() {
+    add_toast('需要您按確認以聽到聲音', '需要您按確認按鈕才能讓您聽到聲音', '#3333ff', reattach_audio);
+
     update_member_list();
     reportUserList();
     setInterval(reportUserList, 60000);
