@@ -486,11 +486,11 @@ var update_member_list = function(){
             }
             $('#member-list').append(member_box);
             users[id] = {};
-            if (null !== participant.getProperty('slack_id')) {
-                users[id].slack_id = participant.getProperty('slack_id');
-            } else {
-                users[id].slack_id = false;
-            }
+        }
+        if (null !== participant.getProperty('slack_id')) {
+            users[id].slack_id = participant.getProperty('slack_id');
+        } else {
+            users[id].slack_id = false;
         }
     }
 
