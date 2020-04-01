@@ -393,21 +393,9 @@ function onLocalTracks(tracks) {
             });
 
             room.addTrack(tracks[i]);
-            if (first_audio) {
-                first_audio = false;
-                var audio_track = tracks[i];
-                audio_track.mute().then(function(){
-                    audio_track.dispose();
-                    $('#member-me').data('audio-track', null);
-                    $('#auth-microphone').prop('checked', false);
-                    $(`#member-me .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
-                    });
-            }
 		}
     }
 }
-
-var first_audio = true;
 
 function reportUserList()
 {
