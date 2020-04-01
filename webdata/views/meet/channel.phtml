@@ -454,7 +454,11 @@ function onRemoteTrack(track) {
         if ($(`#member-${participant} .volume-status`).is('visible')) {
             $(`#audio-${participant}`)[0].muted = true;
         }
-		track.attach($(`#audio-${participant}`)[0]);
+        track.attach($(`#audio-${participant}`)[0]);
+        $(`#audio-${participant}`)[0].play();
+        if ($(`#audio-${participant}`)[0].paused) {
+            add_toast('需要您按確認以聽到聲音', '需要您按確認按鈕才能讓您聽到聲音', '#3333ff', reattach_audio);
+        }
 		$(`#audio-${participant}`).data('track', track);
 
 		if (room.participants[participant].isAudioMuted()) {
@@ -554,8 +558,6 @@ var level_changed = function(participant, audioLevel) {
 };
 
 function onConferenceJoined() {
-    add_toast('需要您按確認以聽到聲音', '需要您按確認按鈕才能讓您聽到聲音', '#3333ff', reattach_audio);
-
     update_member_list();
     reportUserList();
     setInterval(reportUserList, 60000);
