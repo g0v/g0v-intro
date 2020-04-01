@@ -370,38 +370,16 @@ var reattach_audio = function(){
  * Handles local tracks.
  * @param tracks Array with JitsiTrack objects
  */
-var pending_tracks = [];
 function onLocalTracks(tracks) {
     for (let i = 0; i < tracks.length; i++) {
         if (tracks[i].getType() === 'video') {
-            if ($('#member-me').data('video-track')) {
-                var old_type = $('#member-me').data('video-type');
-                if ($('#member-me').data(`${old_type}-track`)) {
-                    $('#member-me').data(`${old_type}-track`).dispose();
-                    $('#member-me').data(`${old_type}-track`, null);
-                    $('#member-me').data('video-track', null);
-                    room.removeTrack($('#member-me').data(`${old_type}-track`)).then(function(){
-                        room.addTrack(tracks[i]);
-                    });
-                } else {
-                    room.addTrack(tracks[i]);
-                }
-                $(`#auth-${old_type}`).prop('checked', false);
-            } else {
-                room.addTrack(tracks[i]);
-            }
+            room.addTrack(tracks[i]);
+            users.me.video_track = tracks[i];
+            $('#member-me .video-status').removeClass('fa-video-slash').addClass('fa-video');
 			if (tracks[i].videoType == 'desktop') {
-				$('#member-me').data('screen-track', tracks[i]);
-                $('#member-me').data('video-track', tracks[i]);
-                $('#member-me').data('video-type', 'screen');
 				$('#auth-screen').prop('checked', true);
-				$('#member-me .video-status').removeClass('fa-video-slash').addClass('fa-video');
 			} else {
-				$('#member-me').data('camera-track', tracks[i]);
-				$('#member-me').data('video-track', tracks[i]);
-                $('#member-me').data('video-type', 'camera');
 				$('#auth-camera').prop('checked', true);
-				$('#member-me .video-status').removeClass('fa-video-slash').addClass('fa-video');
             }
             tracks[i].attach($('#member-me .member-video')[0]);
             $('#member-me').addClass('has-video');
@@ -414,21 +392,17 @@ function onLocalTracks(tracks) {
 				level_changed('me', audioLevel);
             });
 
-			if (isJoined) {
-                room.addTrack(tracks[i]);
-                if (first_audio) {
-                    first_audio = false;
-                    var audio_track = tracks[i];
-                    audio_track.mute().then(function(){
-                        audio_track.dispose();
-                        $('#member-me').data('audio-track', null);
-                        $('#auth-microphone').prop('checked', false);
-                        $(`#member-me .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+            room.addTrack(tracks[i]);
+            if (first_audio) {
+                first_audio = false;
+                var audio_track = tracks[i];
+                audio_track.mute().then(function(){
+                    audio_track.dispose();
+                    $('#member-me').data('audio-track', null);
+                    $('#auth-microphone').prop('checked', false);
+                    $(`#member-me .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
                     });
-                }
-            } else {
-				pending_tracks.push(tracks[i]);
-			}
+            }
 		}
     }
 }
@@ -437,15 +411,15 @@ var first_audio = true;
 
 function reportUserList()
 {
-    var users = [];
-    users.push([my_info.slack_id, room.getLocalParticipantProperty("login_at")]);
+    var report_users = [];
+    report_users.push([my_info.slack_id, room.getLocalParticipantProperty("login_at")]);
     for (var id in room.participants) {
-        users.push([
+        report_users.push([
             room.participants[id].getProperty('slack_id'),
             room.participants[id].getProperty('login_at')
         ]);
     }
-    $.post('/meet/reportuserlist/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_encode($this->channel->channel_id) ?> + '?users=' + users.map(function(a) { return a[0]; }).join(','), 'data=' + encodeURIComponent(JSON.stringify(users)));
+    $.post('/meet/reportuserlist/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_encode($this->channel->channel_id) ?> + '?users=' + report_users.map(function(a) { return a[0]; }).join(','), 'data=' + encodeURIComponent(JSON.stringify(report_users)));
 }
 
 /**
@@ -459,7 +433,7 @@ function onRemoteTrack(track) {
     const participant = track.getParticipantId();
 
     if (track.getType() === 'video') {
-		$(`#member-${participant}`).data('video-track', track);
+        users[participant].video_track = track;
 		if (room.participants[participant].isVideoMuted()) {
 			$(`#member-${participant} .video-status`).removeClass('fa-video').addClass('fa-video-slash');
             track.detach($(`#member-${participant} .member-video`)[0]);
@@ -495,23 +469,16 @@ function onRemoteTrack(track) {
  * That function is executed when the conference is joined
  */
 
-var update_member_list_queue = 0;
+var users = {me: {slack_id : false}};
 
 var update_member_list = function(){
-    if (update_member_list_queue) { // is updating
-        update_member_list_queue ++;
-        return;
-    }
-    update_member_list_queue = 1;
-    $('.member-box').addClass('checking');
-	$('#member-me').removeClass('checking');
     var names = [];
     for (var id in room.participants) {
         var participant = room.participants[id];
         if (null !== participant.getProperty('slack_id')) {
             names.push(participant.getProperty('slack_id'));
         }
-        if (!$('#member-' + id).length) {
+        if ('undefined' === typeof(users[id])) {
             var member_box = $($('#tmpl-member-box').html());
             member_box.attr('id', `member-${id}`);
             member_box.attr('title', `member-${id}`);
@@ -526,6 +493,12 @@ var update_member_list = function(){
                 $('.video-status', member_box).removeClass('fa-video-slash').addClass('fa-video');
             }
             $('#member-list').append(member_box);
+            users[id] = {};
+            if (null !== participant.getProperty('slack_id')) {
+                users[id].slack_id = participant.getProperty('slack_id');
+            } else {
+                users[id].slack_id = false;
+            }
         }
     }
 
@@ -534,19 +507,17 @@ var update_member_list = function(){
             user_info[id] = ret.data[id];
         }
 
-        for (var id in room.participants) {
+        for (var id in users) {
             var participant = room.participants[id];
-            $(`#member-${id}`).removeClass('checking');
-            if (null !== participant.getProperty('slack_id') && 'undefined' !== typeof(user_info[participant.getProperty('slack_id')])) {
-                var info = user_info[participant.getProperty('slack_id')];
+            var user = users[id];
+            if (false !== user.slack_id && 'undefined' !== typeof(user_info[user.slack_id])) {
+                var info = user_info[user.slack_id];
                 $(`#member-${id} .member-displayname`).text(info.account);
                 $(`#member-${id} img`).attr('src', info.avatar);
                 $(`#member-${id} .member-image`).show();
                 $(`#member-${id} .member-nointro`).hide();
-                $(`#member-${id}`).data('info', info);
                 $(`#member-${id}`).attr('title', `Keyword: ${info.keyword}`) ;
                 $(`#member-${id}`).tooltip({placement: 'top'});
-                
             } else {
                 if (null === participant.getDisplayName()) {
                     displayname = 'Fellow Jitster';
@@ -558,15 +529,8 @@ var update_member_list = function(){
                 $(`#member-${id} .member-image`).hide();
                 $(`#member-${id} .member-nointro`).show();
                 $(`#member-${id}`).attr('title', '');
-                $(`#member-${id}`).data('info', null);
             }
         }
-        $('.member-box.checking').remove();
-        if (update_member_list_queue > 1) {
-            update_member_list_queue = 0;
-            update_member_list();
-        }
-        update_member_list_queue = 0;
     }, 'json');
 };
 
@@ -589,9 +553,7 @@ var level_changed = function(participant, audioLevel) {
 	}
 };
 
-let isJoined = false;
 function onConferenceJoined() {
-	isJoined = true;
     update_member_list();
     reportUserList();
     setInterval(reportUserList, 60000);
@@ -619,7 +581,8 @@ function onConferenceJoined() {
 		if (id == $('#main-area-video').data('playing-user')) {
 			$('#main-area-video').data('playing-user', null);
 			check_main_video();
-		}
+        }
+        delete(users[id]);
         update_member_list();
     });
     room.on(JitsiMeetJS.events.conference.DISPLAY_NAME_CHANGED, (id, user) => {
@@ -628,19 +591,6 @@ function onConferenceJoined() {
     room.on(JitsiMeetJS.events.conference.PARTICIPANT_PROPERTY_CHANGED, (id, text, ts) => {
         update_member_list();
     });
-	for (var track of pending_tracks) {
-		room.addTrack(track);
-                if (first_audio) {
-                    first_audio = false;
-                    var audio_track = track;
-                    audio_track.mute().then(function(){
-                        audio_track.dispose();
-                        $('#member-me').data('audio-track', null);
-                        $('#auth-microphone').prop('checked', false);
-                        $(`#member-me .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
-                    });
-                }
-	}
 }
 
 /**
@@ -766,8 +716,9 @@ $.get('/meet/data/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_enco
     confOptions.confID = 'meet.jit.si/' + ret.meta.jitsi_room;
     my_info = ret.user;
 	$('#member-me .member-image').attr('src', ret.user.avatar);
-	$('#member-me').show();
-    $('#member-me').data('info', ret.user);
+    $('#member-me').show();
+    users.me.slack_id = ret.user.slack_id;
+    user_info[ret.user.slack_id] = ret.user;
     $('#main-area-hackmd iframe').attr('src', ret.meta.hackmd);
     $('#title').val(ret.meta.title);
     if (ret.user.type == 2) {
@@ -790,13 +741,6 @@ $.get('/meet/data/' + <?= json_encode($this->event->id) ?> + '/' + <?= json_enco
 
     connection.connect();
 
-JitsiMeetJS.createLocalTracks({ devices: [ 'audio' ] })
-	.then(onLocalTracks)
-	.catch(error => {
-        add_toast('權限錯誤 Permission Error', '無法得到麥克風權限 Error obtaining microphone permission. ' + error, '#ff3333');
-        add_toast('需要您按確認以聽到聲音', '因為您未提供麥克風權限，需要您按確認按鈕才能讓您聽到聲音', '#3333ff', reattach_audio);
-	});
-
 	if (JitsiMeetJS.mediaDevices.isDeviceChangeAvailable('output')) {
 		JitsiMeetJS.mediaDevices.enumerateDevices(devices => {
 			const audioOutputDevices
@@ -812,34 +756,59 @@ JitsiMeetJS.createLocalTracks({ devices: [ 'audio' ] })
 
 $('#auth-screen').change(function(e){
 	e.preventDefault();
+    var video_track = users.me.video_track;
 
-	var screen_track = $('#member-me').data('screen-track');
-	if (!screen_track) {
+    if (!$('#auth-screen').prop('checked')) {
+		video_track.mute().then(function(){
+            video_track.dispose();
+            video_track.detach($('#member-me .member-video')[0]);
+            delete(users.me.video_track);
+			$('#auth-screen').prop('checked', false);
+			$('#member-me').removeClass('has-video');
+			$(`#member-me .video-status`).removeClass('fa-video').addClass('fa-video-slash');
+        });
+        return;
+    }
+	if (!video_track) {
 		JitsiMeetJS.createLocalTracks({ devices: [ 'desktop' ] })
 			.then(onLocalTracks)
 			.catch(error => {
-				add_toast('權限錯誤 Permission Error', '無法得到桌面分享權限 Error obtaining desktop share permission. ' + error, '#ff3333');
+				$('#auth-screen').prop('checked', false);
+				add_toast('權限錯誤 Permission Error', '無法得到攝影機權限 Error obtaining desktop permission. ' + error, '#ff3333');
 			});
 	} else {
-		screen_track.mute().then(function(){
-			if ($('#member-me').data('screen-track')) {
-				screen_track.dispose();
-				$('#member-me').data('screen-track', null);
-				$('#member-me').data('video-track', null);
-			}
-			$('#auth-screen').prop('checked', false);
+		video_track.mute().then(function(){
+            video_track.dispose();
+            video_track.detach($('#member-me .member-video')[0]);
+            delete(users.me.video_track);
+			$('#auth-camera').prop('checked', false);
 			$('#member-me').removeClass('has-video');
-			screen_track.detach($('#member-me .member-video')[0]);
 			$(`#member-me .video-status`).removeClass('fa-video').addClass('fa-video-slash');
-		});
+            JitsiMeetJS.createLocalTracks({ devices: [ 'desktop' ] })
+                .then(onLocalTracks)
+                .catch(error => {
+                    $('#auth-screen').prop('checked', false);
+                    add_toast('權限錯誤 Permission Error', '無法得到攝影機權限 Error obtaining desktop permission. ' + error, '#ff3333');
+                });
+        });
 	}
 });
 
 $('#auth-camera').change(function(e){
-	e.preventDefault();
+    var video_track = users.me.video_track;
 
-	var camera_track = $('#member-me').data('camera-track');
-	if (!camera_track) {
+    if (!$('#auth-camera').prop('checked')) {
+		video_track.mute().then(function(){
+            video_track.dispose();
+            video_track.detach($('#member-me .member-video')[0]);
+            delete(users.me.video_track);
+			$('#auth-camera').prop('checked', false);
+			$('#member-me').removeClass('has-video');
+			$(`#member-me .video-status`).removeClass('fa-video').addClass('fa-video-slash');
+        });
+        return;
+    }
+	if (!video_track) {
 		JitsiMeetJS.createLocalTracks({ devices: [ 'video' ] })
 			.then(onLocalTracks)
 			.catch(error => {
@@ -847,17 +816,20 @@ $('#auth-camera').change(function(e){
 				add_toast('權限錯誤 Permission Error', '無法得到攝影機權限 Error obtaining camera permission. ' + error, '#ff3333');
 			});
 	} else {
-		camera_track.mute().then(function(){
-			if ($('#member-me').data('camera-track')) {
-				camera_track.dispose();
-				$('#member-me').data('camera-track', null)
-				$('#member-me').data('video-track', null);
-			}
-			$('#auth-camera').prop('checked', false);
+		video_track.mute().then(function(){
+            video_track.dispose();
+            video_track.detach($('#member-me .member-video')[0]);
+            delete(users.me.video_track);
+			$('#auth-screen').prop('checked', false);
 			$('#member-me').removeClass('has-video');
-			camera_track.detach($('#member-me .member-video')[0]);
 			$(`#member-me .video-status`).removeClass('fa-video').addClass('fa-video-slash');
-		});
+            JitsiMeetJS.createLocalTracks({ devices: [ 'video' ] })
+                .then(onLocalTracks)
+                .catch(error => {
+                    $('#auth-camera').prop('checked', false);
+                    add_toast('權限錯誤 Permission Error', '無法得到攝影機權限 Error obtaining camera permission. ' + error, '#ff3333');
+                });
+            });
 	}
 });
 
@@ -874,7 +846,8 @@ $('#auth-microphone').change(function(e){
 		});
 	} else {
 		audio_track.mute().then(function(){
-			audio_track.dispose();
+            audio_track.dispose();
+            level_changed('me', 0);
 			$('#member-me').data('audio-track', null);
 			$('#auth-microphone').prop('checked', false);
 			$(`#member-me .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
@@ -908,15 +881,15 @@ setInterval(check_video_stop, 3000);
 $('#member-list').on('click', '.member-box', function(e){
 	e.preventDefault();
     var id = $(this).attr('id').split('-')[1];
-	var info = $(this).data('info');
     $('#main-area-video').data('playing-user', id);
-	if (info) {
+    if ('undefined' !== typeof(users[id]) && false !== users[id].slack_id && 'undefined' !== typeof(user_info[users[id].slack_id])) {
+        var info = user_info[users[id].slack_id];
 		$('#main-no-video img').attr('src', info.avatar);
 		$('#main-no-video .card-title').text('@' + info.account);
 		$('#main-no-video .card-text').text('Keyword: ' + info.keyword);
 	}
 
-	var track = $(this).data('video-track');
+    var track = users[id].video_track;
     if (track && !track.muted) {
         room.selectParticipant(id);
         track_video_attach(track);
