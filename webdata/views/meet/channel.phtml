@@ -586,6 +586,7 @@ function onConferenceJoined() {
 			$('#main-area-video').data('playing-user', null);
 			check_main_video();
         }
+        $('#member-' + id).remove();
         delete(users[id]);
         update_member_list();
     });
