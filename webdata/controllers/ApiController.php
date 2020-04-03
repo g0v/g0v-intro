@@ -9,6 +9,11 @@ class ApiController extends Pix_Controller
             header('Access-Control-Allow-Methods: GET');
             header('Access-Control-Allow-Credentials: true');
             header('Access-Control-Allow-Headers: Content-Type, Authorization');
+            if (in_array($_SERVER['HTTP_ORIGIN'], explode(',', getenv('ALLOW_CORS_ORIGIN')))) {
+                if ($user_id = Pix_Session::get('user_id') and $user = User::find($user_id)) {
+                    $this->view->user = $user;
+                }
+            }
         } else {
             if ($user_id = Pix_Session::get('user_id') and $user = User::find($user_id)) {
                 $this->view->user = $user;
