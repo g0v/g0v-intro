@@ -6,10 +6,14 @@ class ApiController extends Pix_Controller
     {
         if ($_SERVER['HTTP_ORIGIN']) {
             header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
+            header('Access-Control-Allow-Methods: GET');
+            header('Access-Control-Allow-Credentials: true');
+            header('Access-Control-Allow-Headers: Content-Type, Authorization');
+        } else {
+            if ($user_id = Pix_Session::get('user_id') and $user = User::find($user_id)) {
+                $this->view->user = $user;
+            }
         }
-        header('Access-Control-Allow-Methods: GET');
-        header('Access-Control-Allow-Credentials: true');
-        header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             return $this->json('');
@@ -19,8 +23,6 @@ class ApiController extends Pix_Controller
             $access_token = explode(' ', $_SERVER['HTTP_AUTHORIZATION'], 2)[1];
             $session = OAuthSession::find($access_token);
             $this->view->user = User::find($session->slack_id);
-        } else if ($user_id = Pix_Session::get('user_id') and $user = User::find($user_id)) {
-            $this->view->user = $user;
         }
     }
 
