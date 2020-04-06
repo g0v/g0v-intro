@@ -167,6 +167,7 @@ class ApiController extends Pix_Controller
             'id' => $event->id,
             'intro_count' => count(Intro::search(array('event' => $event->id))),
             'status' => $event->status,
+            'data' => $event->getData(),
         );
 
         $ret->data->channels = array();
