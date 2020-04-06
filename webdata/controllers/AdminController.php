@@ -44,6 +44,7 @@ class AdminController extends Pix_Controller
         }
         $event->updateData(array(
             'intro-description' => strval($_POST['intro-description']),
+            'main-channel-url' => strval($_POST['main-channel-url']),
             'meet-description' => strval($_POST['meet-description']),
             'permission' => intval($_POST['permission']),
         ));
