@@ -5,9 +5,14 @@ class EventRow extends Pix_Table_Row
     public function getData()
     {
         if (!$this->data) {
-            return new StdClass;
+            $d = new StdClass;
+        } else {
+            $d = json_decode($this->data);
         }
-        return json_decode($this->data);
+        if (!property_exists($d, 'permission')) {
+            $d->permission = 0;
+        }
+        return $d;
     }
 
     public function updateData($values)

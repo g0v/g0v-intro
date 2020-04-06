@@ -10,6 +10,7 @@
     </thead>
     <tbody>
     <?php foreach (Event::search(arraY('status' => 0)) as $event) { ?>
+    <?php if ($event->getData()->permission == 1) { continue; } ?>
     <tr>
         <td><?= $this->escape($event->name) ?></td>
         <td><a href="/event/show/<?= $event->id ?>"><?= count(Intro::search(array('event' => $event->id))) ?></a></td>
@@ -21,6 +22,7 @@
 <h1>已結束活動 Past Events</h1>
 <ul>
 <?php foreach (Event::search(arraY('status' => 1)) as $event) { ?>
+<?php if ($event->getData()->permission == 1) { continue; } ?>
 <li><a href="/event/show/<?= $event->id ?>"><?= $this->escape($event->name) ?></a></li>
 <?php } ?>
 </ul>
