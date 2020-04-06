@@ -120,7 +120,7 @@ class ApiController extends Pix_Controller
         $ret->error = false;
         $ret->data = array();
 
-        if (!$event = Event::find(strval($_GET['event_id']))) {
+        if (!$event = Event::find_by_id(strval($_GET['event_id']))) {
             header('HTTP/1.1 404 Not Found', true, 404);
             return $this->json(array(
                 'error' => true,
@@ -154,7 +154,7 @@ class ApiController extends Pix_Controller
         $ret->error = false;
         $ret->data = new StdClass;
 
-        if (!$event = Event::find(strval($_GET['event_id']))) {
+        if (!$event = Event::find_by_id(strval($_GET['event_id']))) {
             header('HTTP/1.1 404 Not Found', true, 404);
             return $this->json(array(
                 'error' => true,

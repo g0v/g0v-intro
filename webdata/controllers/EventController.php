@@ -12,7 +12,7 @@ class EventController extends Pix_Controller
     public function showAction()
     {
         list(, /*event*/, /*show*/, $id) = explode('/', $this->getURI());
-        if (!$event = Event::find(strval($id))) {
+        if (!$event = Event::find_by_id(strval($id))) {
             return $this->redirect('/');
         }
         $this->view->event = $event;
@@ -27,7 +27,7 @@ class EventController extends Pix_Controller
     public function downloadcsvAction()
     {
         list(, /*event*/, /*downloadcsv*/, $id) = explode('/', $this->getURI());
-        if (!$event = Event::find(strval($id))) {
+        if (!$event = Event::find_by_id(strval($id))) {
             return $this->alert("{$id} not found", '/');
         }
 
@@ -54,7 +54,7 @@ class EventController extends Pix_Controller
     public function saveintroAction()
     {
         list(, /*event*/, /*saveintro*/, $id) = explode('/', $this->getURI());
-        if (!$event = Event::find(strval($id))) {
+        if (!$event = Event::find_by_id(strval($id))) {
             return $this->alert("{$id} not found", '/');
         }
 
