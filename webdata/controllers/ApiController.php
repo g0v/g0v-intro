@@ -163,6 +163,7 @@ class ApiController extends Pix_Controller
         }
 
         $ret->data->event = array(
+            'seq' => $event->seq,
             'name' => $event->name,
             'id' => $event->id,
             'intro_count' => count(Intro::search(array('event' => $event->id))),
