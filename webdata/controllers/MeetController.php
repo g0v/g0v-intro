@@ -12,7 +12,7 @@ class MeetController extends Pix_Controller
     public function showAction()
     {
         list(, /*meet*/, /*show*/, $event_id) = explode('/', $this->getURI());
-        if (!$event = Event::find($event_id)) {
+        if (!$event = Event::find_by_id($event_id)) {
             return $this->alert("event not found {$event_id}", '/');
         }
         $this->view->event = $event;
@@ -21,7 +21,7 @@ class MeetController extends Pix_Controller
     public function channelAction()
     {
         list(, /*meet*/, /*channel*/, $event_id, $channel_id) = explode('/', $this->getURI());
-        if (!$event = Event::find($event_id)) {
+        if (!$event = Event::find_by_id($event_id)) {
             return $this->alert("event not found {$event_id}", '/');
         }
         if (!$channel = Channel::find(intval($channel_id)) or $channel->event_id != $event_id) {
@@ -37,7 +37,7 @@ class MeetController extends Pix_Controller
     public function reportuserlistAction()
     {
         list(, /*meet*/, /*reportuserlist*/, $event_id, $channel_id) = explode('/', $this->getURI());
-        if (!$event = Event::find($event_id)) {
+        if (!$event = Event::find_by_id($event_id)) {
             return $this->alert("event not found {$event_id}", '/');
         }
         if (!$channel = Channel::find(intval($channel_id)) or $channel->event_id != $event_id) {
@@ -55,7 +55,7 @@ class MeetController extends Pix_Controller
     public function dataAction()
     {
         list(, /*meet*/, /*channel*/, $event_id, $channel_id) = explode('/', $this->getURI());
-        if (!$event = Event::find($event_id)) {
+        if (!$event = Event::find_by_id($event_id)) {
             return $this->alert("event not found {$event_id}", '/');
         }
         if (!$channel = Channel::find(intval($channel_id)) or $channel->event_id != $event_id) {
