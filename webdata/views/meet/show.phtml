@@ -664,7 +664,7 @@ var update_main_user_list = function(){
                 }
 			} else {
                 $('.card-text', this).append(
-                    $('<img>').attr({src: user_info[slack_id].avatar, width:50, height:50})
+                    $('<img>').attr({src: user_info[each_user.slack_id].avatar, width:50, height:50})
                 );
             }
 		}
