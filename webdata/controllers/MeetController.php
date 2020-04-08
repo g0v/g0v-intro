@@ -11,27 +11,10 @@ class MeetController extends Pix_Controller
 
     public function showAction()
     {
-        list(, /*meet*/, /*show*/, $event_id) = explode('/', $this->getURI());
-        if (!$event = Event::find_by_id($event_id)) {
-            return $this->alert("event not found {$event_id}", '/');
-        }
-        $this->view->event = $event;
     }
 
     public function channelAction()
     {
-        list(, /*meet*/, /*channel*/, $event_id, $channel_id) = explode('/', $this->getURI());
-        if (!$event = Event::find_by_id($event_id)) {
-            return $this->alert("event not found {$event_id}", '/');
-        }
-        if (!$channel = Channel::find(intval($channel_id)) or $channel->event_id != $event_id) {
-            return $this->alert("channel_id not found {$channel_id}", '/');
-        }
-        if (!$this->view->user) {
-            return $this->alert("您需要登入才能進聊天室 You need to login first.", "/login?next=" . urlencode($this->getURI()));
-        }
-        $this->view->event = $event;
-        $this->view->channel = $channel;
     }
 
     public function reportuserlistAction()
