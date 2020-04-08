@@ -335,6 +335,9 @@ nav.navbar {
 			<li class="nav-item main-item channel-item">
 			<a href="#" class="nav-link main-switch" data-tab="chat">聊天</a>
 			</li>
+			<li class="nav-item channel-item">
+			<a href="#" class="nav-link main-switch" data-tab="caption">逐字稿</a>
+			</li>
 			<li class="nav-item channel-item" style="display:none">
 			<a href="#" class="nav-link main-switch" data-tab="member">成員</a>
 			</li>
@@ -363,6 +366,9 @@ nav.navbar {
     </div>
 </div>
 </script>
+            <div class="main-right" id="main-right-caption" style="display: none">
+                <div id="caption-textarea"></div>
+            </div>
 			<div class="main-right" id="main-right-chat" style="display: none">
 				<ul id="main-right-chat-list" class="nav nav-tabs" style="display: none">
 					<li class="nav-item">
@@ -713,7 +719,7 @@ var join_main_room = function(){
 					update_main_user_list();
 				}
 			});
-			main_room.on(JitsiMeetJS.events.conference.ENDPOINT_MESSAGE_RECEIVED, (participant, message) => {
+            main_room.on(JitsiMeetJS.events.conference.ENDPOINT_MESSAGE_RECEIVED, (participant, message) => {
 			});
 			main_room.on(JitsiMeetJS.events.conference.DISPLAY_NAME_CHANGED, (id, name) => {
                 update_main_user_list();
@@ -932,6 +938,28 @@ $('#form-channel-chat').submit(function(e){
     $('[name="talk"]', this).val('');
 });
 
+var add_channel_caption = function(id, name, text){
+    var d;
+    d = new Date();
+
+    var dom = $('#caption-textarea .message:last');
+    if (dom.length && (d.getTime() - dom.data('ts').getTime() < 60 * 2 * 1000) && id == dom.data('id')) {
+    } else {
+        dom = $($('#tmpl-chat-message').html());
+        dom.data('ts', d);
+        dom.data('id', id);
+        $('.user-name strong', dom).text(name);
+        $('.message-time', dom).text(('00' + d.getHours()).slice(-2) + ':' + ('00' + d.getMinutes()).slice(-2));
+        $('#caption-textarea').append(dom);
+    }
+    $('.content', dom).append($('<div></div>').text(text));
+    $('#main-chat-textarea').scrollTop($('#main-chat-textarea')[0].scrollHeight);
+
+    if (!$('#chat-switch').is('.active')) {
+        $('#chat-switch .badge').text(1 + parseInt($('#chat-switch .badge').text())).show();
+    }
+};
+
 var add_main_chat_message = function(id, text, ts, nick){
     var d;
     if ('undefined' === typeof(ts)) {
@@ -984,6 +1012,7 @@ var add_channel_chat_message = function(id, text, ts, nick){
     }
 };
 
+var recognition = null;
 var enter_channel = function(channel_id){
 	if (channel_id == current_channel_id && current_channel_id !== null) {
 		return;
@@ -1042,7 +1071,10 @@ var enter_channel = function(channel_id){
 					update_channel_user_list();
 				}
 			});
-			channel_room.on(JitsiMeetJS.events.conference.ENDPOINT_MESSAGE_RECEIVED, (participant, message) => {
+            channel_room.on(JitsiMeetJS.events.conference.ENDPOINT_MESSAGE_RECEIVED, (participant, message) => {
+                if (message.type == 'transcript') {
+                    add_channel_caption(participant, message.name, message.text);
+                }
 			});
 			channel_room.on(JitsiMeetJS.events.conference.DISPLAY_NAME_CHANGED, (id, name) => {
                 update_channel_user_list();
@@ -1166,6 +1198,30 @@ function onLocalTracks(tracks) {
 			if (channel_room) {
 				channel_room.addTrack(tracks[i]);
 			}
+            if (null !== recognition) {
+                recognition.stop();
+                recognition = null;
+            }
+            if ('undefined' !== typeof(webkitSpeechRecognition)) {
+                recognition = new webkitSpeechRecognition();
+                recognition.onresult = function(event) {
+                    for (var i = 0; i < event.results.length; i ++) {
+                        if (event.results[i].isFinal) {
+                            for (var j = 0; j < event.results[i].length; j ++) {
+                                text = event.results[i][j].transcript;
+                                if (channel_room) {
+                                    channel_room.broadcastEndpointMessage({type:'transcript', text:text, name:channel_users.me.name});
+                                    add_channel_caption('me', channel_users.me.name, text);
+                                }
+                            }
+                        }
+                    }
+                }
+                recognition.onend = function(event){
+                    recognition.start();
+                };
+                recognition.start();
+            }
         }
     }
 }
