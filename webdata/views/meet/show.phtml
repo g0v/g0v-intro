@@ -593,7 +593,8 @@ var update_channel_user_list = function(){
 			participant = false;
 		}
 		channel_user = channel_users[id];
-		if ($('#member-' + id).length == 0) {
+        if ($('#member-' + id).length == 0) {
+            play_sound('https://meet.pdis.tw/sounds/joined.wav');
 			var member_box = $($('#tmpl-member-box').html());
 			member_box.attr('id', `member-${id}`);
 			if (participant && !participant.isAudioMuted()) {
@@ -1425,6 +1426,7 @@ var reattach_audio = function(){
         var track = audio_dom.data('track');
         if (track) {
             track.attach(audio_dom[0]);
+            audio_dom[0].play();
         }
     });
 };
@@ -1494,6 +1496,15 @@ var check_main_video = function(){
     if (!playing_user || !$(`#member-${playing_user}`).length) {
         $('.member-box:first()').click();
     }
+};
+
+var play_sound = function(src){
+    var audio = document.createElement('audio');
+    audio.src = src;
+    audio.addEventListener('ended', function(){
+        this.remove();
+    });
+    audio.play();
 };
 
 
