@@ -842,7 +842,7 @@ $('#main-right-feature-list .nav-link').click(function(e){
 $('#channel-feature-list .channel-switch').click(function(e){
     e.preventDefault();
     $('#channel-feature-list .channel-switch').removeClass('active');
-    if ($(this).data('data') == 'video') {
+    if ($(this).data('tab') == 'video') {
         check_main_video();
     }
 	$(this).addClass('active');
