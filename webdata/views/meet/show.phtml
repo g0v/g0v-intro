@@ -1212,7 +1212,11 @@ function onLocalTracks(tracks) {
                             for (var j = 0; j < event.results[i].length; j ++) {
                                 text = event.results[i][j].transcript;
                                 if (channel_room) {
-                                    channel_room.broadcastEndpointMessage({type:'transcript', text:text, name:channel_users.me.name});
+                                    try {
+                                        channel_room.broadcastEndpointMessage({type:'transcript', text:text, name:channel_users.me.name});
+                                    } catch (e) {
+                                        // it fails if no other participant.
+                                    }
                                     add_channel_caption('me', channel_users.me.name, text);
                                 }
                             }
