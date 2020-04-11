@@ -218,6 +218,13 @@ nav.navbar {
 	display: flex;
 	flex-direction: row;
 }
+#main-right-caption {
+    height: 100%;
+}
+#caption-textarea {
+    height: 100%;
+    overflow: scroll;
+}
 </style>
 </head>
 <body>
@@ -953,11 +960,7 @@ var add_channel_caption = function(id, name, text){
         $('#caption-textarea').append(dom);
     }
     $('.content', dom).append($('<div></div>').text(text));
-    $('#main-chat-textarea').scrollTop($('#main-chat-textarea')[0].scrollHeight);
-
-    if (!$('#chat-switch').is('.active')) {
-        $('#chat-switch .badge').text(1 + parseInt($('#chat-switch .badge').text())).show();
-    }
+    $('#caption-textarea').scrollTop($('#caption-textarea')[0].scrollHeight);
 };
 
 var add_main_chat_message = function(id, text, ts, nick){
