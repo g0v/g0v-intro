@@ -1132,7 +1132,9 @@ var back_to_main = function(){
 
 $('#button-back-to-main').click(function(e){
 	e.preventDefault();
-	back_to_main();
+    if (confirm('您將會離開現在的頻道，確定要離開嗎？Are you sure to exit curreht channel?')) {
+        back_to_main();
+    }
 });
 
 var add_toast = function(title, body, color, callback){
