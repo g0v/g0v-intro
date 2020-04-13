@@ -62,7 +62,7 @@ class User extends Pix_Table
         return implode(',', $user_accounts);
     }
 
-    public static function fetchUser($user_id)
+    public static function fetchUser($user_id, $update = false)
     {
 		$url = sprintf("https://slack.com/api/users.info?user=%s&token=%s", $user_id, getenv('SLACK_ACCESS_TOKEN'));
 		$obj = json_decode(file_get_contents($url));
@@ -72,9 +72,9 @@ class User extends Pix_Table
 			$account = $obj->user->profile->real_name;
 		} else {
 			throw new Exception("{$user_id} account not found");
-		}
-		$display_name = $obj->user->real_name;
-		return User::insert(array(
+        }
+        $display_name = $obj->user->real_name;
+		$data = (array(
 			'slack_id' => $user_id,
 			'account' => $account,
 			'type' => 0,
@@ -82,8 +82,24 @@ class User extends Pix_Table
 			'logined_at' => 0,
 			'data' => json_encode(array(
 				'display_name' => $display_name,
-				'image' => $obj->user->profile->image_512,
+				'image' => $obj->user->profile->image_original,
 			)),
-		));
+        ));
+        if ($update) {
+            try {
+                $u = User::insert($data);
+                return $u;
+            } catch (Pix_Table_DuplicateException $e) {
+                User::find($user_id)->update(array(
+                    'account' => $account,
+                    'data' => json_encode(array(
+                        'display_name' => $display_name,
+                        'image' => $obj->user->profile->image_original,
+                    )),
+                ));
+            }
+        } else {
+            return User::insert($data);
+        }
     }
 }
