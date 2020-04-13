@@ -586,13 +586,36 @@ var update_channel_user_list = function(){
         channel_users[id].name = user.getDisplayName();
 	}
 
-	for (var id in channel_users) {
-		if ('me' != id) {
+    for (var id in channel_users) {
+        if ('me' != id) {
+            if ('undefined' === typeof(channel_room.participants[id])) {
+                delete(channel_users[id]);
+                continue;
+            }
 			participant = channel_room.participants[id];
 		} else {
 			participant = false;
 		}
-		channel_user = channel_users[id];
+        channel_user = channel_users[id];
+        if (participant) {
+            for (var track of participant.getTracks('audio')) {
+                if ($('#audio-' + id).length == 0) {
+                    $('#audio-pool').append(`<audio id="audio-${id}" autoplay="1" class="remote" />`);
+                }
+                var old_track = $('#audio-' + id).data('track');
+                if (old_track && old_track.ssrc != track.ssrc) {
+                    old_track.detach($('#audio-' + id)[0]);
+                }
+                if (!old_track || old_track.ssrc != track.ssrc) {
+                    track.attach($('#audio-' + id)[0]);
+                    $('#audio-' + id).data('track', track);
+                }
+                $(`#audio-${id}`)[0].play();
+                if ($(`#audio-${id}`)[0].paused) {
+                    add_toast('需要您按確認以聽到聲音', '需要您按確認按鈕才能讓您聽到聲音', '#3333ff', reattach_audio);
+                }
+            }
+        }
         if ($('#member-' + id).length == 0) {
             play_sound('https://meet.pdis.tw/sounds/joined.wav');
 			var member_box = $($('#tmpl-member-box').html());
@@ -647,7 +670,11 @@ var update_main_user_list = function(){
 
 	var each_channel_users = {};
 	for (var id in main_users) {
-		var main_user = main_users[id];
+        var main_user = main_users[id];
+        if (id != 'me' && 'undefined' === typeof(main_room.participants[id])) {
+            delete(main_users[id]);
+            continue;
+        }
 		if ('undefined' === typeof(main_user.channel)) {
 			continue;
 		}
@@ -818,7 +845,6 @@ $('#form-nickname [name="nickname"]').keyup(function(){
     var name = get_my_nickname();
     if (main_room) {
         main_room.setDisplayName(name);
-        main_users
     }
     if (channel_room) {
         channel_room.setDisplayName(name);
@@ -1507,6 +1533,24 @@ var play_sound = function(src){
     audio.play();
 };
 
+var auto_checker = function(){
+    // check main channel
+    if (main_room) {
+        try {
+            update_main_user_list()
+        } catch (e) {
+        }
+    }
+
+    if (channel_room) {
+        try {
+            update_channel_user_list();
+        } catch (e) {
+        }
+    }
+};
+
+setTimeout(auto_checker, 5000);
 
 </script>
 </html>
