@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 <script src="https://www.youtube.com/iframe_api"></script>
-<script src="//meet.pdis.tw/libs/lib-jitsi-meet.min.js"></script>
+<script src="//<?= $this->jitsi_site ?>/libs/lib-jitsi-meet.min.js"></script>
 <style>
 
 body {
@@ -485,12 +485,12 @@ $(window).resize(function(e){
 
 const options = {
     hosts: {
-        domain: 'meet.pdis.tw',
-        muc: 'conference.meet.pdis.tw',
-        focus: "focus.meet.pdis.tw",
+        domain: <?= json_encode($this->jitsi_site) ?>,
+        muc: 'conference.' + <?= json_encode($this->jitsi_site) ?>,
+        focus: 'focus.' + <?= json_encode($this->jitsi_site) ?>,
     },
-    serviceUrl: '//meet.pdis.tw/http-bind',
-    bosh: '//meet.pdis.tw/http-bind',
+    serviceUrl: '//' + <?= json_encode($this->jitsi_site) ?> + '/http-bind',
+    bosh: '//' + <?= json_encode($this->jitsi_site) ?> + '/http-bind',
 
    // The name of client node advertised in XEP-0115 'c' stanza
    clientNode: 'http://jitsi.org/jitsimeet'
@@ -719,7 +719,7 @@ var join_main_room = function(){
 	    confID: '',
     };
     main_room_id = 'jothononlinemain' + event_info.event.seq;
-	confOptions.confID = 'meet.pdis.tw/' + main_room_id;
+    confOptions.confID = <?= json_encode($this->jitsi_site) ?> + '/' + main_room_id;
     main_room = main_connection.initJitsiConference(main_room_id, confOptions);
 	main_users.me = {};
 	if (login_data !== null) {
@@ -1065,7 +1065,7 @@ var enter_channel = function(channel_id){
 	    confID: '',
 	};
     channel_room_id = 'jothononlinechannel' + channel_id;
-	confOptions.confID = 'meet.pdis.tw/' + channel_room_id;
+    confOptions.confID = <?= json_encode($this->jitsi_site) ?> + '/' + channel_room_id;
     channel_room = channel_connection.initJitsiConference(channel_room_id, confOptions);
 	if (login_data !== null) {
 		channel_room.setDisplayName(login_data.account);

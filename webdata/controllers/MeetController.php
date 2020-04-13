@@ -11,10 +11,22 @@ class MeetController extends Pix_Controller
 
     public function showAction()
     {
+        list(, /*meet*/, /*action*/, $event_id) = explode('/', $this->getURI());
+        if ($event = Event::find_by_id($event_id)) {
+            $this->view->jitsi_site = $event->getData()->{'jitsi-site'};
+        } else {
+            $this->view->jitsi_site = 'meet.jit.si';
+        }
     }
 
     public function channelAction()
     {
+        list(, /*meet*/, /*action*/, $event_id) = explode('/', $this->getURI());
+        if ($event = Event::find_by_id($event_id)) {
+            $this->view->jitsi_site = $event->getData()->{'jitsi-site'};
+        } else {
+            $this->view->jitsi_site = 'meet.jit.si';
+        }
     }
 
     public function reportuserlistAction()
