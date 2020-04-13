@@ -590,6 +590,7 @@ var update_channel_user_list = function(){
         if ('me' != id) {
             if ('undefined' === typeof(channel_room.participants[id])) {
                 delete(channel_users[id]);
+                $('#member-' + id).remove();
                 continue;
             }
 			participant = channel_room.participants[id];
