@@ -43,6 +43,7 @@
     自介頁說明：<textarea name="intro-description"><?= $this->escape($this->event->getData()->{'intro-description'}) ?></textarea><br>
     大廳頁說明：<textarea name="meet-description"><?= $this->escape($this->event->getData()->{'intro-description'}) ?></textarea><br>
     主頻道網址：<input type="text" name="main-channel-url" value="<?= $this->escape($this->event->getData()->{'main-channel-url'}) ?>"><br>
+    Jitsi 主機：<input type="text" name="jitsi-site" value="<?= $this->escape($this->event->getData()->{'jitsi-site'}) ?>"><br>
     <button type="submit">修改</button>
 </form>
 <?php } else { ?>
@@ -58,6 +59,7 @@
     自介頁說明：<textarea name="intro-description"></textarea><br>
     大廳頁說明：<textarea name="meet-description"></textarea><br>
     主頻道網址：<input type="text" name="main-channel-url"><br>
+    Jitsi 主機：<input type="text" name="jitsi-site" value="meet.jit.si"><br>
     活動權限：<select name="permission">
         <option value="0">公開</option>
         <option value="1">不公開在首頁</option>

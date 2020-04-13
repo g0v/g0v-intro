@@ -47,6 +47,7 @@ class AdminController extends Pix_Controller
             'main-channel-url' => strval($_POST['main-channel-url']),
             'meet-description' => strval($_POST['meet-description']),
             'permission' => intval($_POST['permission']),
+            'jitsi-site' => strval($_POST['jitsi-site']),
         ));
         return $this->alert('ok', '/admin/event?event_id' . urlencode($event->id));
     }

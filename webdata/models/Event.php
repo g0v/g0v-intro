@@ -12,6 +12,9 @@ class EventRow extends Pix_Table_Row
         if (!property_exists($d, 'permission')) {
             $d->permission = 0;
         }
+        if (!property_exists($d, 'jitsi-site')) {
+            $d->{'jitsi-site'} = 'meet.jit.si';
+        }
         return $d;
     }
 
