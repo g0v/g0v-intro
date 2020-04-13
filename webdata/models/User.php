@@ -82,9 +82,10 @@ class User extends Pix_Table
 			'logined_at' => 0,
 			'data' => json_encode(array(
 				'display_name' => $display_name,
-				'image' => $obj->user->profile->image_original,
+                'image' => $obj->user->profile->image_original ?: $obj->user->profile->image_512,
 			)),
         ));
+        print_r($obj);
         if ($update) {
             try {
                 $u = User::insert($data);
@@ -94,7 +95,7 @@ class User extends Pix_Table
                     'account' => $account,
                     'data' => json_encode(array(
                         'display_name' => $display_name,
-                        'image' => $obj->user->profile->image_original,
+                        'image' => $obj->user->profile->image_original ?: $obj->user->profile->image_512,
                     )),
                 ));
             }

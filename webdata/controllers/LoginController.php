@@ -81,7 +81,7 @@ class LoginController extends Pix_Controller
             'logined_at' => time(),
             'data' => json_encode(array(
                 'display_name' => $obj->user->real_name,
-                'image' => $obj->user->profile->image_original,
+                'image' => $obj->user->profile->image_original ?: $obj->user->profile->image_512,
             )),
         ));
 
