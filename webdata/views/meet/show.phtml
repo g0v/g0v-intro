@@ -489,8 +489,8 @@ const options = {
         muc: 'conference.' + <?= json_encode($this->jitsi_site) ?>,
         focus: 'focus.' + <?= json_encode($this->jitsi_site) ?>,
     },
-    serviceUrl: '//' + <?= json_encode($this->jitsi_site) ?> + '/http-bind',
-    bosh: '//' + <?= json_encode($this->jitsi_site) ?> + '/http-bind',
+bosh: 'wss://' + <?= json_encode($this->jitsi_site) ?> + '/xmpp-websocket',
+    websocket: 'wss://<?= json_encode($this->jitsi_site) ?>/xmpp-websocket',
 
    // The name of client node advertised in XEP-0115 'c' stanza
    clientNode: 'http://jitsi.org/jitsimeet'
@@ -599,7 +599,12 @@ var update_channel_user_list = function(){
 		}
         channel_user = channel_users[id];
         if (participant) {
-            for (var track of participant.getTracks('audio')) {
+            var has_audio = false;
+            for (var track of participant.getTracks()) {
+                if (track.getType() != 'audio') {
+                    continue;
+                }
+                has_audio = true;
                 if ($('#audio-' + id).length == 0) {
                     $('#audio-pool').append(`<audio id="audio-${id}" autoplay="1" class="remote" />`);
                 }
@@ -611,14 +616,51 @@ var update_channel_user_list = function(){
                     track.attach($('#audio-' + id)[0]);
                     $('#audio-' + id).data('track', track);
                 }
+                if (track.muted) {
+                    $(`#member-${id} .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+                } else {
+                    $(`#member-${id} .microphone-status`).addClass('fa-microphone-alt').removeClass('fa-microphone-alt-slash');
+                }
                 $(`#audio-${id}`)[0].play();
                 if ($(`#audio-${id}`)[0].paused) {
-                    add_toast('需要您按確認以聽到聲音', '需要您按確認按鈕才能讓您聽到聲音', '#3333ff', reattach_audio);
+                    add_toast('需要您按確認以聽到聲音', '需要您按確認按鈕才能讓您聽到聲音', '#3333ff', reattach_audio, 'audio_click');
                 }
+            }
+            if (!has_audio) {
+                $(`#member-${id} .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+            }
+
+            var has_video = false;
+            for (var track of participant.getTracks()) {
+                if (track.getType() != 'video') {
+                    continue;
+                }
+                has_video = true;
+                var video_dom = $('#member-' + id + ' .member-video');
+                var old_track = video_dom.data('track');
+                if (old_track && old_track.ssrc != track.ssrc) {
+                    old_track.detach(video_dom[0]);
+                }
+                if (!old_track || old_track.ssrc != track.ssrc) {
+                    track.attach(video_dom[0]);
+                    video_dom.data('track', track);
+                }
+
+                if (track.muted) {
+                    $('#member-' + id).removeClass('has-video');
+                    $('#member-' + id + ' .video-status').removeClass('fa-video').addClass('fa-video-slash');
+                } else {
+                    $('#member-' + id).addClass('has-video');
+                    $('#member-' + id + ' .video-status').addClass('fa-video').removeClass('fa-video-slash');
+                }
+            }
+            if (!has_video) {
+                $('#member-' + id).removeClass('has-video');
+                $('#member-' + id + ' .video-status').removeClass('fa-video').addClass('fa-video-slash');
             }
         }
         if ($('#member-' + id).length == 0) {
-            play_sound('https://meet.pdis.tw/sounds/joined.wav');
+            play_sound('https://jitsi.jothon.online/sounds/joined.wav');
 			var member_box = $($('#tmpl-member-box').html());
 			member_box.attr('id', `member-${id}`);
 			if (participant && !participant.isAudioMuted()) {
@@ -1078,8 +1120,9 @@ var enter_channel = function(channel_id){
         JitsiMeetJS.events.conference.CONFERENCE_JOINED,
 		function(){
 			update_channel_user_list();
-            channel_room.on(JitsiMeetJS.events.conference.TRACK_ADDED, onRemoteTrack);
-            channel_room.on(JitsiMeetJS.events.conference.TRACK_REMOVED, onRemoteTrackRemoved);
+            channel_room.on(JitsiMeetJS.events.conference.TRACK_MUTE_CHANGED, auto_checker);
+            channel_room.on(JitsiMeetJS.events.conference.TRACK_ADDED, auto_checker);
+            channel_room.on(JitsiMeetJS.events.conference.TRACK_REMOVED, auto_checker);
 			channel_room.on(JitsiMeetJS.events.conference.TRACK_AUDIO_LEVEL_CHANGED, level_changed);
 			channel_room.on(JitsiMeetJS.events.conference.USER_JOINED, (id, user) => {
 				update_channel_user_list();
@@ -1168,10 +1211,16 @@ $('#button-back-to-main').click(function(e){
     }
 });
 
-var add_toast = function(title, body, color, callback){
+var add_toast = function(title, body, color, callback, id){
     var dom = $($('#tmpl-toast').html());
     $('.mr-auto', dom).text(title);
     $('.toast-body', dom).text(body);
+    if (id) {
+        if ($('#toast-' + id).length) {
+            return;
+        }
+        dom.attr('id', 'toast-' + id);
+    }
     if (callback) {
         $('.toast-body', dom).append(
             $('<form></form>').append($('<button type="submit">OK</button>')).submit(function(e){
@@ -1361,92 +1410,6 @@ $('#auth-screen').change(function(e){
     }
 });
 
-function onRemoteTrack(track) {
-    if (track.isLocal()) {
-        return;
-    }
-    const participant = track.getParticipantId();
-
-    if (track.getType() === 'video') {
-        channel_users[participant].video_track = track;
-        if (channel_room.participants[participant].isVideoMuted()) {
-            $(`#member-${participant} .video-status`).removeClass('fa-video').addClass('fa-video-slash');
-            track.detach($(`#member-${participant} .member-video`)[0]);
-            $(`#member-${participant}`).removeClass('has-video')
-        } else {
-            $(`#member-${participant} .video-status`).removeClass('fa-video-slash').addClass('fa-video');
-            $(`#member-${participant}`).addClass('has-video')
-            track.attach($(`#member-${participant} .member-video`)[0]);
-        }
-    } else {
-        if (!$(`#audio-${participant}`).length) {
-            $('#audio-pool').append(`<audio id="audio-${participant}" autoplay="1" class="remote" />`);
-        }
-
-        if (old_track = $(`#audio-${participant}`).data('track')) {
-            old_track.detach($(`#audio-${participant}`)[0]);
-        }
-        if ($(`#member-${participant} .volume-status`).is('visible')) {
-            $(`#audio-${participant}`)[0].muted = true;
-        }
-        track.attach($(`#audio-${participant}`)[0]);
-        $(`#audio-${participant}`)[0].play();
-        if ($(`#audio-${participant}`)[0].paused) {
-            add_toast('需要您按確認以聽到聲音', '需要您按確認按鈕才能讓您聽到聲音', '#3333ff', reattach_audio);
-        }
-        $(`#audio-${participant}`).data('track', track);
-
-        if (channel_room.participants[participant].isAudioMuted()) {
-            $(`#member-${participant} .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
-        } else {
-            $(`#member-${participant} .microphone-status`).removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
-        }
-    }
-}
-
-function onRemoteTrackRemoved(track) {
-    if (track.isLocal()) {
-        return;
-    }
-    const participant = track.getParticipantId();
-
-    if (track.getType() === 'video') {
-        channel_users[participant].video_track = track;
-        if (channel_room.participants[participant].isVideoMuted()) {
-            $(`#member-${participant} .video-status`).removeClass('fa-video').addClass('fa-video-slash');
-            track.detach($(`#member-${participant} .member-video`)[0]);
-            $(`#member-${participant}`).removeClass('has-video')
-        } else {
-            $(`#member-${participant} .video-status`).removeClass('fa-video-slash').addClass('fa-video');
-            $(`#member-${participant}`).addClass('has-video')
-            track.attach($(`#member-${participant} .member-video`)[0]);
-        }
-    } else {
-        if (!$(`#audio-${participant}`).length) {
-            $('#audio-pool').append(`<audio id="audio-${participant}" autoplay="1" class="remote" />`);
-        }
-
-        if (old_track = $(`#audio-${participant}`).data('track')) {
-            old_track.detach($(`#audio-${participant}`)[0]);
-        }
-        if ($(`#member-${participant} .volume-status`).is('visible')) {
-            $(`#audio-${participant}`)[0].muted = true;
-        }
-        track.attach($(`#audio-${participant}`)[0]);
-        $(`#audio-${participant}`)[0].play();
-        if ($(`#audio-${participant}`)[0].paused) {
-            add_toast('需要您按確認以聽到聲音', '需要您按確認按鈕才能讓您聽到聲音', '#3333ff', reattach_audio);
-        }
-        $(`#audio-${participant}`).data('track', track);
-
-        if (channel_room.participants[participant].isAudioMuted()) {
-            $(`#member-${participant} .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
-        } else {
-            $(`#member-${participant} .microphone-status`).removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
-        }
-    }
-}
-
 var reattach_audio = function(){
     $('audio.remote').each(function(){
         var audio_dom = $(this);
@@ -1455,6 +1418,9 @@ var reattach_audio = function(){
             track.attach(audio_dom[0]);
             audio_dom[0].play();
         }
+        });
+    $('.member-video').each(function(){
+        this.play();
     });
 };
 
@@ -1501,22 +1467,8 @@ $('#main-right-member').on('click', '.member-box', function(e){
         $('#channel-no-video .card-text').text('');
     }
 
-    var track = channel_users[id].video_track;
-    if (track && !track.muted) {
-        channel_room.selectParticipant(id);
-        track_video_attach(track);
-        $('#channel-area-video').addClass('has-video');
-    } else {
-        $('#channel-area-video').removeClass('has-video');
-    }
+    update_channel_video();
 });
-
-function track_video_attach(track) {
-    if (old_track = $('#track-video').data('track')) {
-        old_track.detach($('#track-video')[0]);
-    }
-    track.attach($('#track-video')[0]);
-};
 
 var check_main_video = function(){
     var playing_user = $('#channel-area-video').data('playing-user');
@@ -1549,9 +1501,52 @@ var auto_checker = function(){
         } catch (e) {
         }
     }
+
+    update_channel_video();
 };
 
-setTimeout(auto_checker, 5000);
+var update_channel_video = function(){
+    var id = $('#channel-area-video').data('playing-user');
+    var old_track = $('#channel-area-video').data('track');
+    if (id == 'me') {
+        track = channel_users[id].video_track;
+    } else {
+        track = $('#member-' + id + ' .member-video').data('track');
+    }
+    if (track && track.disposed) {
+        track = false;
+    }
+
+    if (!track) {
+        $('#channel-area-video').removeClass('has-video');
+        return;
+    }
+    if (id != 'me' && old_track && old_track.ssrc != track.ssrc) {
+        old_track.detach($('#track-video')[0]);
+    }
+    if (id == 'me' && old_track && old_track != track) {
+        old_track.detach($('#track-video')[0]);
+    }
+    if (id != 'me' && (!old_track || old_track.ssrc != track.ssrc)) {
+        track.attach($('#track-video')[0]);
+        channel_room.selectParticipant(id);
+        $('#channel-area-video').data('track', track);
+    }
+    if (id == 'me' && (!old_track || old_track != track)) {
+        track.attach($('#track-video')[0]);
+        channel_room.selectParticipant(id);
+        $('#channel-area-video').data('track', track);
+    }
+
+    if (track.muted) {
+        $('#channel-area-video').removeClass('has-video');
+    } else {
+        $('#channel-area-video').addClass('has-video');
+    }
+
+};
+
+setInterval(auto_checker, 5000);
 
 </script>
 </html>
