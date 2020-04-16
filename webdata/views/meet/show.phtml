@@ -1546,6 +1546,24 @@ var update_channel_video = function(){
 
 };
 
+$(window).bind('beforeunload', unload);
+$(window).bind('unload', unload);
+function unload() {
+    if (channel_room) {
+        channel_room.leave();
+    }
+    if (main_room) {
+        main_room.leave();
+    }
+    if (channel_connection) {
+        channel_connection.disconnect();
+    }
+    if (main_connection) {
+        main_connection.disconnect();
+    }
+}
+
+
 setInterval(auto_checker, 5000);
 
 </script>
