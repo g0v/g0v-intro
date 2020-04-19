@@ -584,6 +584,9 @@ var update_channel_user_list = function(){
 		}
 		channel_users[id].slack_id = user.getProperty('slack_id');
         channel_users[id].name = user.getDisplayName();
+        if ('undefined' === typeof(channel_users[id].name)) {
+            channel_users[id].name = 'nobody';
+        }
 	}
 
     for (var id in channel_users) {
@@ -709,6 +712,9 @@ var update_main_user_list = function(){
             user_data: user_data,
             name: user.getDisplayName(),
 		};
+        if ('undefined' === typeof(main_users[id].name)) {
+            main_users[id].name = 'nobody';
+        }
 	}
 
 	var each_channel_users = {};
