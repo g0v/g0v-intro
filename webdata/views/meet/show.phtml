@@ -624,7 +624,11 @@ var update_channel_user_list = function(){
                 } else {
                     $(`#member-${id} .microphone-status`).addClass('fa-microphone-alt').removeClass('fa-microphone-alt-slash');
                 }
-                $(`#audio-${id}`)[0].play();
+                try {
+                    $(`#audio-${id}`)[0].play().catch(error => {
+                    });;
+                } catch (e) {
+                }
                 if ($(`#audio-${id}`)[0].paused) {
                     add_toast('需要您按確認以聽到聲音', '需要您按確認按鈕才能讓您聽到聲音', '#3333ff', reattach_audio, 'audio_click');
                 }
@@ -1422,11 +1426,13 @@ var reattach_audio = function(){
         var track = audio_dom.data('track');
         if (track) {
             track.attach(audio_dom[0]);
-            audio_dom[0].play();
+            audio_dom[0].play().catch(error => {
+            });
         }
         });
     $('.member-video').each(function(){
-        this.play();
+        this.play().catch(error => {
+        });
     });
 };
 
@@ -1489,7 +1495,8 @@ var play_sound = function(src){
     audio.addEventListener('ended', function(){
         this.remove();
     });
-    audio.play();
+    audio.play().catch(error => {
+    });;
 };
 
 var auto_checker = function(){
