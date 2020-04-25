@@ -489,7 +489,7 @@ const options = {
         muc: 'conference.' + <?= json_encode($this->jitsi_site) ?>,
         focus: 'focus.' + <?= json_encode($this->jitsi_site) ?>,
     },
-bosh: 'wss://' + <?= json_encode($this->jitsi_site) ?> + '/xmpp-websocket',
+    bosh: 'wss://' + <?= json_encode($this->jitsi_site) ?> + '/xmpp-websocket',
     websocket: 'wss://<?= json_encode($this->jitsi_site) ?>/xmpp-websocket',
 
    // The name of client node advertised in XEP-0115 'c' stanza
@@ -519,6 +519,7 @@ const initOptions = {
 
 var main_connection;
 var channel_connection;
+var channel_options;
 
 var connect_main_jitsi = function(){
 	JitsiMeetJS.setLogLevel(JitsiMeetJS.logLevels.ERROR);
@@ -543,15 +544,28 @@ var connect_main_jitsi = function(){
 	return d;
 };
 
-var connect_channel_jitsi = function(){
-	JitsiMeetJS.setLogLevel(JitsiMeetJS.logLevels.ERROR);
-    JitsiMeetJS.init(initOptions);
-    channel_connection = new JitsiMeetJS.JitsiConnection(null, null, options);
-
+var channel_options = null;
+var connect_channel_jitsi = function(domain, name, confOptions){
 	var d = new Promise(function(resolve, reject){
+        if (null === channel_options) {
+            channel_options = options;
+            channel_options.domain = domain;
+            channel_options.hosts.domain = domain;
+            channel_options.hosts.muc = 'conference.' + domain;
+            channel_options.hosts.focus = 'focus.' + domain;
+            channel_options.bosh = 'wss://' + domain + '/xmpp-websocket?room=' + name.toLowerCase();
+            channel_options.websocket= 'wss://' + domain + '/xmpp-websocket';
+        } else if (channel_connection) {
+            channel_connection.disconnect();
+        }
+
+        JitsiMeetJS.setLogLevel(JitsiMeetJS.logLevels.ERROR);
+        JitsiMeetJS.init(initOptions);
+        channel_connection = new JitsiMeetJS.JitsiConnection(null, null, channel_options);
+
 		channel_connection.addEventListener(
-			JitsiMeetJS.events.connection.CONNECTION_ESTABLISHED,
-			resolve
+            JitsiMeetJS.events.connection.CONNECTION_ESTABLISHED,
+            function(){ resolve(confOptions); }
 			);
 		channel_connection.addEventListener(
 			JitsiMeetJS.events.connection.CONNECTION_FAILED,
@@ -561,7 +575,7 @@ var connect_channel_jitsi = function(){
 			function(){
 			});
 
-		channel_connection.connect();
+        channel_connection.connect();
 	}.bind(this));
 	return d;
 };
@@ -875,8 +889,6 @@ cors_get(api_url + 'api/event/channel?event_id=' + encodeURIComponent(event_id))
     }
 	return connect_main_jitsi();
 }).then(function(){
-	return connect_channel_jitsi();
-}).then(function(){
     return join_main_room();
 }).then(function(){
     $('#main-right-channel-list .click-enter-channel').show();
@@ -1096,9 +1108,13 @@ var add_channel_chat_message = function(id, text, ts, nick){
 };
 
 var recognition = null;
+var current_channel_domain = null;
 var enter_channel = function(channel_id){
 	if (channel_id == current_channel_id && current_channel_id !== null) {
 		return;
+    }
+    if ('undefined' === typeof(channels[channel_id])) {
+        return;
     }
 
     window.history.pushState('', '', '/meet/channel/' + event_info.event.id + '/' + channel_id);
@@ -1111,84 +1127,97 @@ var enter_channel = function(channel_id){
 	current_channel_id = channel_id;
 	main_room.setLocalParticipantProperty('channel', current_channel_id);
 	main_users.me.channel = current_channel_id
-	update_main_user_list();
+    update_main_user_list();
+
 
 	var confOptions = {
 		openBridgeChannel: true,
 	    confID: '',
-	};
-    channel_room_id = 'jothononlinechannel' + channel_id;
-    confOptions.confID = <?= json_encode($this->jitsi_site) ?> + '/' + channel_room_id;
-    channel_room = channel_connection.initJitsiConference(channel_room_id, confOptions);
-	if (login_data !== null) {
-		channel_room.setDisplayName(login_data.account);
-		channel_room.setLocalParticipantProperty('slack_id', login_data.slack_id);
-    } else {
-        channel_room.setDisplayName(get_my_nickname());
-    }
-    channel_room.on(
-        JitsiMeetJS.events.conference.CONFERENCE_JOINED,
-		function(){
-			update_channel_user_list();
-            channel_room.on(JitsiMeetJS.events.conference.TRACK_MUTE_CHANGED, auto_checker);
-            channel_room.on(JitsiMeetJS.events.conference.TRACK_ADDED, auto_checker);
-            channel_room.on(JitsiMeetJS.events.conference.TRACK_REMOVED, auto_checker);
-			channel_room.on(JitsiMeetJS.events.conference.TRACK_AUDIO_LEVEL_CHANGED, level_changed);
-			channel_room.on(JitsiMeetJS.events.conference.USER_JOINED, (id, user) => {
-				update_channel_user_list();
-			});
-			channel_room.on(JitsiMeetJS.events.conference.MESSAGE_RECEIVED, (id, text, ts, nick, other) => {
-				add_channel_chat_message(id, text, ts, nick);
-			});
-            channel_room.on(JitsiMeetJS.events.conference.USER_LEFT, (id, user) => {
-                if (id == $('#channel-area-video').data('playing-user')) {
-                    $('#channel-area-video').data('playing-user', null);
-                    check_main_video();
-                }
+    };
+    var jitsi_url = channels[channel_id].meta.jitsi_room;
+    var matches = jitsi_url.match('^https://([^/]*)/(.*)$');
 
-				delete(channel_users[id]);
-				$('#member-' + id).remove();
-				update_channel_user_list();
-			});
-			channel_room.on(JitsiMeetJS.events.conference.PARTICIPANT_PROPERTY_CHANGED, (user, text, ts) => {
-				if ('slack_id' == text) {
-					update_channel_user_list();
-				}
-			});
-            channel_room.on(JitsiMeetJS.events.conference.ENDPOINT_MESSAGE_RECEIVED, (participant, message) => {
-                if (message.type == 'transcript') {
-                    add_channel_caption(participant, message.name, message.text);
-                }
-			});
-			channel_room.on(JitsiMeetJS.events.conference.DISPLAY_NAME_CHANGED, (id, name) => {
+    if (matches) {
+        channel_domain = matches[1];
+        channel_room_id = matches[2].toLowerCase();
+        confOptions.confID = channel_domain + '/' + channel_room_id;
+    } else {
+        channel_domain = <?= json_encode($this->jitsi_site) ?>;
+        channel_room_id = 'jothononlinechannel' + channel_id;
+        confOptions.confID = <?= json_encode($this->jitsi_site) ?> + '/' + channel_room_id;
+    }
+    connect_channel_jitsi(channel_domain, channel_room_id, confOptions).then(function(confOptions){
+        channel_room = channel_connection.initJitsiConference(channel_room_id, confOptions);
+        if (login_data !== null) {
+            channel_room.setDisplayName(login_data.account);
+            channel_room.setLocalParticipantProperty('slack_id', login_data.slack_id);
+        } else {
+            channel_room.setDisplayName(get_my_nickname());
+        }
+        channel_room.on(
+            JitsiMeetJS.events.conference.CONFERENCE_JOINED,
+            function(){
                 update_channel_user_list();
-			});
-	});
-	$('#channel-chat-textarea').html('');
-	channel_users = {};
-    channel_users.me = {};
-    if (login_data) {
-        channel_users.me.slack_id = login_data.slack_id;
-        channel_users.me.name = login_data.account;
-    } else {
-        channel_users.me.name = get_my_nickname();
-    }
-	channel_users.me.video_track = null;
-	channel_users.me.audio_track = null;
-    channel_room.join();
+                channel_room.on(JitsiMeetJS.events.conference.TRACK_MUTE_CHANGED, auto_checker);
+                channel_room.on(JitsiMeetJS.events.conference.TRACK_ADDED, auto_checker);
+                channel_room.on(JitsiMeetJS.events.conference.TRACK_REMOVED, auto_checker);
+                channel_room.on(JitsiMeetJS.events.conference.TRACK_AUDIO_LEVEL_CHANGED, level_changed);
+                channel_room.on(JitsiMeetJS.events.conference.USER_JOINED, (id, user) => {
+                    update_channel_user_list();
+                });
+                channel_room.on(JitsiMeetJS.events.conference.MESSAGE_RECEIVED, (id, text, ts, nick, other) => {
+                    add_channel_chat_message(id, text, ts, nick);
+                });
+                channel_room.on(JitsiMeetJS.events.conference.USER_LEFT, (id, user) => {
+                    if (id == $('#channel-area-video').data('playing-user')) {
+                        $('#channel-area-video').data('playing-user', null);
+                        check_main_video();
+                    }
 
-	$('#channel-title').text(channels[channel_id].meta.title);
+                    delete(channel_users[id]);
+                    $('#member-' + id).remove();
+                    update_channel_user_list();
+                });
+                channel_room.on(JitsiMeetJS.events.conference.PARTICIPANT_PROPERTY_CHANGED, (user, text, ts) => {
+                    if ('slack_id' == text) {
+                        update_channel_user_list();
+                    }
+                });
+                channel_room.on(JitsiMeetJS.events.conference.ENDPOINT_MESSAGE_RECEIVED, (participant, message) => {
+                    if (message.type == 'transcript') {
+                        add_channel_caption(participant, message.name, message.text);
+                    }
+                });
+                channel_room.on(JitsiMeetJS.events.conference.DISPLAY_NAME_CHANGED, (id, name) => {
+                    update_channel_user_list();
+                });
+        });
+        $('#channel-chat-textarea').html('');
+        channel_users = {};
+        channel_users.me = {};
+        if (login_data) {
+            channel_users.me.slack_id = login_data.slack_id;
+            channel_users.me.name = login_data.account;
+        } else {
+            channel_users.me.name = get_my_nickname();
+        }
+        channel_users.me.video_track = null;
+        channel_users.me.audio_track = null;
+        channel_room.join();
 
-	$('.screen-left-content').hide();
-	$('#screen-left-content-channel').show();
-	$('#main-right-feature-list .nav-item').hide();
-	$('#main-right-feature-list .channel-item').show();
-	$('#main-right-feature-list .main-switch[data-tab="member"]').click();
-	$('#channel-area-hackmd iframe').attr('src', channels[channel_id].meta.hackmd);
-	$('#main-right-chat-list').show();
-	$('#main-right-chat-list .main-switch[data-tab="channel"]').click();
+        $('#channel-title').text(channels[channel_id].meta.title);
 
-	video_switch('small');
+        $('.screen-left-content').hide();
+        $('#screen-left-content-channel').show();
+        $('#main-right-feature-list .nav-item').hide();
+        $('#main-right-feature-list .channel-item').show();
+        $('#main-right-feature-list .main-switch[data-tab="member"]').click();
+        $('#channel-area-hackmd iframe').attr('src', channels[channel_id].meta.hackmd);
+        $('#main-right-chat-list').show();
+        $('#main-right-chat-list .main-switch[data-tab="channel"]').click();
+
+        video_switch('small');
+    });
 };
 
 var back_to_main = function(){
