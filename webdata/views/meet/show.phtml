@@ -1621,14 +1621,16 @@ cors_get(api_url + 'api/event/intro?event_id=' + encodeURIComponent(event_id)).t
     {
       str_temp = str_temp.split(' ').join(',');
     }
-    if(people.intro.voice_path != null)
-    {
-      $('#intro-row').append(`
+    var intro_head = `
         <div class="col-sm-3 text-center p-2 m-2">
           <div style="min-height: 200px; border-radius: 3px;background-position: center center;	background-repeat: no-repeat;	background-size: contain; background-image: url(${people.user.avatar})"></div>
           <h3 class="p-0 m-0">@${people.user.account}</h3>
           <p class="p-0">(${people.user.display_name})</p>
-          <p>${people.intro.keyword}</p>
+          <p>${people.intro.keyword}</p>`;
+    if(people.intro.voice_path != null)
+    {
+      $('#intro-row').append(`
+          ${intro_head}
           <a href="#" class="btn btn-primary play-voice" data-path="${people.intro.voice_path}" data-id="">播放自介 Recording</a>
         </div>
       `);      
@@ -1636,11 +1638,7 @@ cors_get(api_url + 'api/event/intro?event_id=' + encodeURIComponent(event_id)).t
     else
     {
       $('#intro-row').append(`
-        <div class="col-sm-3 text-center p-2 m-2">
-          <div style="min-height: 200px; border-radius: 3px;background-position: center center;	background-repeat: no-repeat;	background-size: contain; background-image: url(${people.user.avatar})"></div>
-          <h3 class="p-0 m-0">@${people.user.account}</h3>
-          <p class="p-0">(${people.user.display_name})</p>
-          <p>${people.intro.keyword}</p>
+          ${intro_head}
           <a href="#" class="btn btn-primary play-tts" data-text="${people.user.display_name},${str_temp}">機器發音 Robot Speaking</a>
         </div>
       `);
