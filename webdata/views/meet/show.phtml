@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 <script src="https://www.youtube.com/iframe_api"></script>
-<script src="//<?= $this->jitsi_site ?>/libs/lib-jitsi-meet.min.js"></script>
+<script src="//jitsi.jothon.online/libs/lib-jitsi-meet.min.js"></script>
 <style>
 
 body {
@@ -37,22 +37,25 @@ nav.navbar {
 }
 
 #main-area-left {
-    flex: 1 0 auto;
+  flex: 1 0 0px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 .screen-left-content {
 	height: 100%;
 	display: flex;
-    flex-direction: column;
+  flex-direction: column;
+  flex: 1;
 }
 
 #screen-row .screen-left {
 	display: flex;
-    flex-direction: column;
+  flex-direction: column;
 }
 
 #screen-row .screen-right {
-	display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 #screen-row .feature-area {
@@ -225,6 +228,21 @@ nav.navbar {
     height: 100%;
     overflow: scroll;
 }
+
+#main-area-intro {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+#intro-row {
+  flex: 1 0 auto;
+  min-height: 100px;
+}
+
+#intro-row > div {
+  border: 1px solid #AAA;
+  border-radius: 3px;
+}
 </style>
 </head>
 <body>
@@ -276,10 +294,11 @@ nav.navbar {
 			</div><!-- .feature-area -->
 			<div id="main-area-left">
 				<div class="main-area" id="main-area-video"></div>
-                <div class="main-area" id="main-area-intro" style="display:none">
-                    TODO
+        <div class="main-area" id="main-area-intro" style="display:none;">
+          <div class="row justify-content-center" id="intro-row">
+          </div>
 				</div>
-			</div>
+      </div>
 		</div><!-- #screen-left-content-main -->
 		<div class="screen-left-content" id="screen-left-content-channel" style="display:none">
 			<div class="feature-area">
@@ -428,7 +447,6 @@ nav.navbar {
 <div id="player"></div>
 <div id="audio-pool" style="display:none":></div>
 <div id="toast-area" style="position: absolute; bottom: 30px; left: 30px"></div>
-</body>
 <script id="tmpl-toast" type="text/html">
 <div class="toast" data-autohide="false">
   <div class="toast-header">
@@ -485,12 +503,12 @@ $(window).resize(function(e){
 
 const options = {
     hosts: {
-        domain: <?= json_encode($this->jitsi_site) ?>,
-        muc: 'conference.' + <?= json_encode($this->jitsi_site) ?>,
-        focus: 'focus.' + <?= json_encode($this->jitsi_site) ?>,
+        domain: 'jitsi.jothon.online',
+        muc: 'conference.' + 'jitsi.jothon.online',
+        focus: 'focus.' + 'jitsi.jothon.online',
     },
-    bosh: 'wss://' + <?= json_encode($this->jitsi_site) ?> + '/xmpp-websocket',
-    websocket: 'wss://<?= json_encode($this->jitsi_site) ?>/xmpp-websocket',
+    bosh: 'wss://jitsi.jothon.online/xmpp-websocket',
+    websocket: 'wss://jitsi.jothon.online/xmpp-websocket',
 
    // The name of client node advertised in XEP-0115 'c' stanza
    clientNode: 'http://jitsi.org/jitsimeet'
@@ -786,7 +804,7 @@ var join_main_room = function(){
 	    confID: '',
     };
     main_room_id = 'jothononlinemain' + event_info.event.seq;
-    confOptions.confID = <?= json_encode($this->jitsi_site) ?> + '/' + main_room_id;
+    confOptions.confID = 'jitsi.jothon.online' + '/' + main_room_id;
     main_room = main_connection.initJitsiConference(main_room_id, confOptions);
 	main_users.me = {};
 	if (login_data !== null) {
@@ -1142,9 +1160,9 @@ var enter_channel = function(channel_id){
         channel_room_id = matches[2].toLowerCase();
         confOptions.confID = channel_domain + '/' + channel_room_id;
     } else {
-        channel_domain = <?= json_encode($this->jitsi_site) ?>;
+        channel_domain = 'jitsi.jothon.online';
         channel_room_id = 'jothononlinechannel' + channel_id;
-        confOptions.confID = <?= json_encode($this->jitsi_site) ?> + '/' + channel_room_id;
+        confOptions.confID = 'jitsi.jothon.online' + '/' + channel_room_id;
     }
     connect_channel_jitsi(channel_domain, channel_room_id, confOptions).then(function(confOptions){
         channel_room = channel_connection.initJitsiConference(channel_room_id, confOptions);
@@ -1604,9 +1622,53 @@ function unload() {
         main_connection.disconnect();
     }
 }
-
-
 setInterval(auto_checker, 5000);
 
+//intro
+cors_get(api_url + 'api/event/intro?event_id=' + encodeURIComponent(event_id)).then(function(ret){   
+  for (var people of ret.data) {
+    var str_temp = people.intro.keyword;
+    if(str_temp.match(",|、|，") == null)
+    {
+      str_temp = str_temp.split(' ').join(',');
+    }
+    var intro_head = `
+      <div class="col-sm-3 text-center p-2 m-2">
+        <div class="data-avatar" style="min-height: 200px; border-radius: 3px;background-position: center center;	background-repeat: no-repeat;	background-size: contain;"></div>
+        <h3 class="p-0 m-0 data-account"></h3>
+        <p class="p-0 data-dispname"></p>
+        <p class="data-keyword"></p>
+      </div>
+    `;
+    var intro_head_dom = $(intro_head); 
+    $('.data-account', intro_head_dom).text(`@${people.user.account}`);
+    $('.data-dispname', intro_head_dom).text(`(${people.user.display_name})`);
+    $('.data-keyword', intro_head_dom).text(`${people.intro.keyword}`);
+    $('.data-avatar', intro_head_dom).css('background-image', 'url(\'' + people.user.avatar + '\')');
+
+    if(people.intro.voice_path != null)
+    {
+      intro_head_dom.append($('<a href="#" class="btn btn-primary play-voice" data-path="">播放自介 Recording</a>').data('path', people.intro.voice_path));
+    }
+    else
+    {
+        intro_head_dom.append($('<a href="#" class="btn btn-primary play-tts" data-text="">機器發音 Robot Speaking</a>').data('text', people.user.display_name + ',' + str_temp));
+    }
+    $('#intro-row').append(intro_head_dom);
+  }
+}); 
+
+$('#intro-row').on('click', '.play-voice', function(e){
+    e.preventDefault();
+    var audio_dom = $('<audio></audio>');
+    audio_dom[0].src = 'https://g0v-intro.s3-ap-northeast-1.amazonaws.com/' + $(this).data('path');
+    audio_dom[0].play();
+});
+$('#intro-row').on('click', '.play-tts', function(e){
+    e.preventDefault();
+    speechSynthesis.speak(new SpeechSynthesisUtterance($(this).data('text')));
+}); 
 </script>
+
+</body>
 </html>
