@@ -41,6 +41,7 @@
         <option value="1" <?= $this->event->getData()->permission == 1 ? 'selected="selected"' : '' ?>>不公開在首頁</option>
     </select><br>
     自介頁說明：<textarea name="intro-description"><?= $this->escape($this->event->getData()->{'intro-description'}) ?></textarea><br>
+    自介秒數：<input type="number" name="intro-duration" value="<?= intval($this->event->getData()->{'intro-duration'}) ?: 10 ?>"><br>
     大廳頁說明：<textarea name="meet-description"><?= $this->escape($this->event->getData()->{'intro-description'}) ?></textarea><br>
     主頻道網址：<input type="text" name="main-channel-url" value="<?= $this->escape($this->event->getData()->{'main-channel-url'}) ?>"><br>
     Jitsi 主機：<input type="text" name="jitsi-site" value="<?= $this->escape($this->event->getData()->{'jitsi-site'}) ?>"><br>
@@ -57,6 +58,7 @@
         <option value="1">結束</option>
     </select><br>
     自介頁說明：<textarea name="intro-description"></textarea><br>
+    自介秒數：<input type="number" name="intro-duration" value="10"><br>
     大廳頁說明：<textarea name="meet-description"></textarea><br>
     主頻道網址：<input type="text" name="main-channel-url"><br>
     Jitsi 主機：<input type="text" name="jitsi-site" value="meet.jit.si"><br>
