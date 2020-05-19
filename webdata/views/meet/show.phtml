@@ -433,7 +433,6 @@ nav.navbar {
 <div id="player"></div>
 <div id="audio-pool" style="display:none":></div>
 <div id="toast-area" style="position: absolute; bottom: 30px; left: 30px"></div>
-</body>
 <script id="tmpl-toast" type="text/html">
 <div class="toast" data-autohide="false">
   <div class="toast-header">
@@ -1655,4 +1654,6 @@ $('#intro-row').on('click', '.play-tts', function(e){
     speechSynthesis.speak(new SpeechSynthesisUtterance($(this).data('text')));
 }); 
 </script>
+
+</body>
 </html>
