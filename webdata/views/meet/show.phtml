@@ -13,7 +13,7 @@
 <style>
 
 body {
-	#overflow: hidden;
+	overflow: hidden;
 }
 .container-fluid {
     display: flex;
@@ -37,17 +37,20 @@ nav.navbar {
 }
 
 #main-area-left {
-    flex: 1 0 auto;
+  flex: 1 0 0px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 .screen-left-content {
 	height: 100%;
 	display: flex;
-    flex-direction: column;
+  flex-direction: column;
+  flex: 1;
 }
 
 #screen-row .screen-left {
 	display: flex;
-    flex-direction: column;
+  flex-direction: column;
 }
 
 #screen-row .screen-right {
@@ -225,6 +228,17 @@ nav.navbar {
     height: 100%;
     overflow: scroll;
 }
+
+#main-area-intro {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+#intro-row {
+  flex: 1 0 auto;
+  min-height: 100px;
+}
+
 #intro-row > div {
   border: 1px solid #AAA;
   border-radius: 3px;
@@ -280,7 +294,7 @@ nav.navbar {
 			</div><!-- .feature-area -->
 			<div id="main-area-left">
 				<div class="main-area" id="main-area-video"></div>
-        <div class="main-area container" id="main-area-intro" style="display:none">
+        <div class="main-area" id="main-area-intro" style="display:none;">
           <div class="row justify-content-center" id="intro-row">
           </div>
 				</div>
@@ -1620,7 +1634,7 @@ cors_get(api_url + 'api/event/intro?event_id=' + encodeURIComponent(event_id)).t
     }
     var intro_head = `
       <div class="col-sm-3 text-center p-2 m-2">
-        <div class="data-avatar" style="min-height: 200px; border-radius: 3px;background-position: center center;	background-repeat: no-repeat;	background-size: contain; background-image: url(${people.user.avatar})"></div>
+        <div class="data-avatar" style="min-height: 200px; border-radius: 3px;background-position: center center;	background-repeat: no-repeat;	background-size: contain;"></div>
         <h3 class="p-0 m-0 data-account"></h3>
         <p class="p-0 data-dispname"></p>
         <p class="data-keyword"></p>
@@ -1630,14 +1644,15 @@ cors_get(api_url + 'api/event/intro?event_id=' + encodeURIComponent(event_id)).t
     $('.data-account', intro_head_dom).text(`@${people.user.account}`);
     $('.data-dispname', intro_head_dom).text(`(${people.user.display_name})`);
     $('.data-keyword', intro_head_dom).text(`${people.intro.keyword}`);
-    
+    $('.data-avatar', intro_head_dom).css('background-image', 'url(\'' + people.user.avatar + '\')');
+
     if(people.intro.voice_path != null)
     {
-      intro_head_dom.append($('<a href="#" class="btn btn-primary play-voice">播放自介 Recording</a>').data('path', people.intro.voice_path));
+      intro_head_dom.append($('<a href="#" class="btn btn-primary play-voice" data-path="">播放自介 Recording</a>').data('path', people.intro.voice_path));
     }
     else
     {
-        intro_head_dom.append($('<a href="#" class="btn btn-primary play-tts">機器發音 Robot Speaking</a>').data('text', people.user.display_name + ',' + str_temp));
+        intro_head_dom.append($('<a href="#" class="btn btn-primary play-tts" data-text="">機器發音 Robot Speaking</a>').data('text', people.user.display_name + ',' + str_temp));
     }
     $('#intro-row').append(intro_head_dom);
   }
