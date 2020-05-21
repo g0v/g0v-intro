@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.css">
   <style>
     body {
-      background-color: black;
+      background-color: green;
     }
   </style>
 </head>
@@ -81,9 +81,9 @@
         y++;
       }
       var vpWidth = window.innerWidth;
-      var dom = $('<div style="text-align: center; width: 100%;"><a></a></div>');
+      var dom = $('<div style="text-align: center; width: 100%;"><a style="background-color: rgba(0,0,0,0.8)"></a></div>');
       $('a', dom).text(`${message.text}`);
-      var y_position = y*30 + 30;
+      var y_position = y*45 + 45;
       dom.appendTo('body')
          .css({
              position:'absolute',
@@ -93,7 +93,6 @@
              zIndex: 9999, 
              fontWeight: 600,
              color: '#FFFF50',
-             textShadow: '-1px 0 black, 1px 0 black, 0 1px black, 0 -1px black',
              opacity: 0.66
          });
     dom.delay(5000).animate({opacity: 0},0,'linear',function(){
