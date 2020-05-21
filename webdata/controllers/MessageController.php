@@ -58,6 +58,8 @@ class MessageController extends Pix_Controller
             $after = max($after, $message->ts);
         }
         $ret->next_url = '/message/getmessage?channel=' . urlencode($channel_id) . '&after=' . $after;
+        header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
+        header('Access-Control-Allow-Methods: GET');
         return $this->json($ret);
     }
 
