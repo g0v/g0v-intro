@@ -2,53 +2,105 @@
 <!DOCTYPE html>
 <html>
 <head>
+<base href="https://meet.jothon.online/">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>彈幕 - <?= $this->escape($this->channel_id) ?></title>
+<title>彈幕 - </title>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.css">
-<script>
-var channel_id = <?= json_encode($this->channel_id); ?>;
-var api_url = '/message/getmessage?channel=' + encodeURIComponent(channel_id);
-$(function(){
-    setInterval(function(){
-        $.get(api_url, function(ret){
-            if (ret.next_url) {
-                api_url = ret.next_url;
-            }
-            if (ret.messages) {
-                ret.messages.map(shoot);
-            }
-        }, 'json');
-    }, 1000);
-});
-
-var shoot = function(message){
-    var y = Math.floor(Math.random() * window.innerHeight);
-    var vpWidth = window.innerWidth;
-    var dom = $('<div></div>').text(`${message.user}: ${message.text}`);
-    dom.appendTo('body')
-       .css({
-           position:'fixed', 
-           top: y, 
-           fontSize: '1.5em', 
-           fontFamily: '"Microsoft JhengHei", "微軟正黑體" sans-serif',
-           zIndex: 9999, 
-           fontWeight: 600,
-           color: 'white',
-           textShadow: '-1px 0 black, 1px 0 black, 0 1px black, 0 -1px black',
-           opacity: 0.66
-       });
-
-    var domWidth = dom.width();
-    dom.css({left: vpWidth, width: domWidth})
-        .animate({left: -domWidth}, 8000 + Math.floor(8000 * Math.random()), 'linear', function(){
-            dom.remove();
-        });
-};
-</script>
+  <style>
+    body {
+      background-color: black;
+    }
+  </style>
 </head>
 <body>
+  <script>
+  var trsl_disp = new Array(10);
+  trsl_disp.fill(0);
+  var url = new URL(window.location);
+  var pathArray = url.pathname.split('/');
+  var channel_id = pathArray[pathArray.length-1];
+  document.title = `彈幕 - ${channel_id}`;
+  var type = url.searchParams.get("type");
+  var api_url = '/message/getmessage?channel=' + encodeURIComponent(channel_id);
+  $(function(){
+      setInterval(function(){
+          $.get(api_url, function(ret){
+              if (ret.next_url) {
+                  api_url = ret.next_url;
+              }
+              if (ret.messages) {
+                  if(type == 1)
+                    ret.messages.map(shoot2);
+                  else
+                  {
+                    ret.messages.map(shoot);
+                  }
+                  
+              }
+          }, 'json');
+      }, 1000);
+  });
+
+  var shoot = function(message){
+      var y = Math.floor(Math.random() * window.innerHeight);
+      var vpWidth = window.innerWidth;
+      var dom = $('<div></div>').text(`${message.user}: ${message.text}`);
+      dom.appendTo('body')
+         .css({
+             position:'fixed', 
+             top: y, 
+             fontSize: '1.5em', 
+             fontFamily: '"Microsoft JhengHei", "微軟正黑體" sans-serif',
+             zIndex: 9999, 
+             fontWeight: 600,
+             color: 'white',
+             textShadow: '-1px 0 black, 1px 0 black, 0 1px black, 0 -1px black',
+             opacity: 0.66
+         });
+
+      var domWidth = dom.width();
+      dom.css({left: vpWidth, width: domWidth})
+          .animate({left: -domWidth}, 8000 + Math.floor(8000 * Math.random()), 'linear', function(){
+              dom.remove();
+          });
+  };
+  
+  var shoot2 = function(message){
+      var y=0;
+      
+      while(1)
+      {
+        if(trsl_disp[y]==0 || y>=10)
+        {
+          trsl_disp[y] = 1;
+          break;
+        }
+        y++;
+      }
+      var vpWidth = window.innerWidth;
+      var dom = $('<div style="text-align: center; width: 100%;"><a></a></div>');
+      $('a', dom).text(`${message.text}`);
+      var y_position = y*30 + 30;
+      dom.appendTo('body')
+         .css({
+             position:'absolute',
+             top: y_position,
+             fontSize: '1.5em', 
+             fontFamily: '"Microsoft JhengHei", "微軟正黑體" sans-serif',
+             zIndex: 9999, 
+             fontWeight: 600,
+             color: '#FFFF50',
+             textShadow: '-1px 0 black, 1px 0 black, 0 1px black, 0 -1px black',
+             opacity: 0.66
+         });
+    dom.delay(5000).animate({opacity: 0},0,'linear',function(){
+      dom.remove();
+      trsl_disp[y] = 0;      
+    });
+  };
+  </script>
 </body>
 </html>
