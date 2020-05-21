@@ -43,12 +43,15 @@ $('#record-time').text('有錄音記錄，錄音長度 ' + record_length.toPreci
 </form>
 <script>
 var recorder;
+var intro_duration = <?= intval($this->event->getData()->{'intro-duration'}) ?: 10 ?>;
+var record_ending = false;
 
 setInterval(function(){
-	if ($('#record').data('record_at')) {
+	if (!record_ending && $('#record').data('record_at')) {
 		var delta = ((new Date).getTime() - $('#record').data('record_at')) / 1000;
-		$('#record-time').text('錄音中：' + delta.toPrecision(2) + ' 秒');
-		if (delta > 10) {
+        $('#record-time').text('錄音中：' + delta.toPrecision(2) + ' 秒 / ' + intro_duration);
+        if (delta > intro_duration) {
+            record_ending = true;
 			recordButtonClick();
 		}
 	}
@@ -56,7 +59,9 @@ setInterval(function(){
 
 var perm_asked = false;
 var recordButtonClick = function(e){
-	e.preventDefault();
+    if (e) {
+        e.preventDefault();
+    }
     if (!perm_asked) {
       // get audio stream from user's mic
       navigator.mediaDevices.getUserMedia({
@@ -88,7 +93,8 @@ var recordButtonClick = function(e){
 		$(this).data('record_at', null);
 		$(this).text('按我錄音');
 		recorder.stop();
-	} else {
+    } else {
+        record_ending = false;
 		$(this).data('record_at', new Date);
 		$('#replay').hide();
 		$(this).text('結束錄音');
