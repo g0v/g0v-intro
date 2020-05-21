@@ -16,10 +16,6 @@
   </style>
 </head>
 <body>
-  <div id="barrage-top" style="width: 100vw; height: 50vh;">
-  </div>
-  <div id="barrage-bottom" style="width: 100vw; height: 50vh; overflow: hidden;">    
-  </div>
   <script>
   var trsl_disp = new Array(10);
   trsl_disp.fill(0);
@@ -36,13 +32,11 @@
                   api_url = ret.next_url;
               }
               if (ret.messages) {
-                  if(type == 0)
-                    ret.messages.map(shoot);
+                  if(type == 1)
+                    ret.messages.map(shoot2);
                   else
                   {
-                    ret.messages.map(shoot2);
-                    //if(ret.messages.length > 0)
-                      //console.log(ret.messages);
+                    ret.messages.map(shoot);
                   }
                   
               }
@@ -51,10 +45,10 @@
   });
 
   var shoot = function(message){
-      var y = Math.floor(Math.random() * $('#barrage-top').height());
+      var y = Math.floor(Math.random() * window.innerHeight);
       var vpWidth = window.innerWidth;
       var dom = $('<div></div>').text(`${message.user}: ${message.text}`);
-      dom.appendTo('#barrage-top')
+      dom.appendTo('body')
          .css({
              position:'fixed', 
              top: y, 
@@ -89,8 +83,8 @@
       var vpWidth = window.innerWidth;
       var dom = $('<div style="text-align: center; width: 100%;"><a></a></div>');
       $('a', dom).text(`${message.text}`);
-      var y_position = $('#barrage-bottom').position().top + y*30 + 30;
-      dom.appendTo('#barrage-bottom')
+      var y_position = y*30 + 30;
+      dom.appendTo('body')
          .css({
              position:'absolute',
              top: y_position,
@@ -102,7 +96,7 @@
              textShadow: '-1px 0 black, 1px 0 black, 0 1px black, 0 -1px black',
              opacity: 0.66
          });
-    dom.delay(5000+(1000*Math.random())).animate({opacity: 0},0,'linear',function(){
+    dom.delay(5000).animate({opacity: 0},0,'linear',function(){
       dom.remove();
       trsl_disp[y] = 0;      
     });
