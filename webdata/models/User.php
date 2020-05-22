@@ -33,7 +33,7 @@ class User extends Pix_Table
         $this->_columns['logined_at'] = array('type' => 'int');
         $this->_columns['data'] = array('type' => 'text');
 
-        $this->addIndex('account', array('account'), 'unique');
+        $this->addIndex('account', array('account'));
     }
 
     public static function parseUsers($users)
@@ -41,7 +41,9 @@ class User extends Pix_Table
         $user_accounts = array_map('trim', explode(',', trim($users)));
         $user_ids = array();
         foreach ($user_accounts as $account) {
-            if ($user = User::find_by_account($account)) {
+            if (User::search(array('account' => $account))->count() == 1) {
+                $user_ids[] = User::find_by_account($account)->slack_id;
+            } else if ($user = User::find($account)) {
                 $user_ids[] = $user->slack_id;
             }
         }
