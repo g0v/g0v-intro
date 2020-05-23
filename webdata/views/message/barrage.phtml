@@ -47,7 +47,7 @@
   var shoot = function(message){
       var y = Math.floor(Math.random() * window.innerHeight);
       var vpWidth = window.innerWidth;
-      var dom = $('<div><a style="background-color: rgba(0,0,0,0.8)"></a></div>');
+      var dom = $('<div class="normal-barrage"><a></a></div>');
       $('a', dom).text(`${message.user}: ${message.text}`);
       dom.appendTo('body')
          .css({
@@ -58,7 +58,7 @@
              zIndex: 9999, 
              fontWeight: 600,
              color: 'white',
-             textShadow: '-1px 0 black, 1px 0 black, 0 1px black, 0 -1px black',
+             textShadow: '-3px 0 black, 3px 0 black, 0 3px black, 0 -3px black',
              opacity: 0.66
          });
 
@@ -82,7 +82,7 @@
         y++;
       }
       var vpWidth = window.innerWidth;
-      var dom = $('<div style="text-align: center; width: 100%;"><a style="background-color: rgba(0,0,0,0.8)"></a></div>');
+      var dom = $('<div class="trans-barrage" style="text-align: center; width: 100%;"><a style="background-color: rgba(0,0,0,0.8)"></a></div>');
       $('a', dom).text(`${message.text}`);
       var y_position = y*45 + 45;
       dom.appendTo('body')
