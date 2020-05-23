@@ -47,7 +47,8 @@
   var shoot = function(message){
       var y = Math.floor(Math.random() * window.innerHeight);
       var vpWidth = window.innerWidth;
-      var dom = $('<div></div>').text(`${message.user}: ${message.text}`);
+      var dom = $('<div><a style="background-color: rgba(0,0,0,0.8)"></a></div>');
+      $('a', dom).text(`${message.user}: ${message.text}`);
       dom.appendTo('body')
          .css({
              position:'fixed', 
