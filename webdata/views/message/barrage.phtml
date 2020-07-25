@@ -24,7 +24,7 @@
   var channel_id = pathArray[pathArray.length-1];
   document.title = `彈幕 - ${channel_id}`;
   var type = url.searchParams.get("type");
-  var api_url = '/message/getmessage?channel=' + encodeURIComponent(channel_id);
+  var api_url = 'https://g0v-slack-archive.g0v.ronny.tw/index/getmessage?channel=' + encodeURIComponent(channel_id);
   $(function(){
       setInterval(function(){
           $.get(api_url, function(ret){
@@ -48,7 +48,7 @@
       var y = Math.floor(Math.random() * window.innerHeight);
       var vpWidth = window.innerWidth;
       var dom = $('<div class="normal-barrage"><a></a></div>');
-      $('a', dom).text(`${message.user}: ${message.text}`);
+      $('a', dom).text(`${message.user.name}: ${message.text}`);
       dom.appendTo('body')
          .css({
              position:'fixed', 
