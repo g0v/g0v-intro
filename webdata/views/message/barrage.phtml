@@ -83,6 +83,7 @@
       }
       var vpWidth = window.innerWidth;
       var dom = $('<div class="trans-barrage" style="text-align: center; width: 100%;"><a style="background-color: rgba(0,0,0,0.8)"></a></div>');
+      message.text = message.text.replace(/&amp;/g, '&');
       $('a', dom).text(`${message.text}`);
       var y_position = y*45 + 45;
       dom.appendTo('body')
