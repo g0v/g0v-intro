@@ -1,7 +1,7 @@
 <?= $this->partial('common/header.phtml', $this) ?>
 <script src="https://cdn.jsdelivr.net/npm/opus-media-recorder@latest/OpusMediaRecorder.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/opus-media-recorder@latest/encoderWorker.umd.js"></script>
-<h1>活動：<?= $this->escape($this->event->name) ?></h1>
+<h1>活動 Event：<?= $this->escape($this->event->name) ?></h1>
 <p><?= $this->escape($this->event->getData()->{'intro-description'}) ?></p>
 <hr>
 <h2>我要錄自介 I want to record my intro</h2>
@@ -14,7 +14,7 @@ Slack ID：<?= $this->escape($this->user->account) ?><br>
 顯示頭像 Photo：<img src="<?= $this->escape($this->user->getImage()) ?>" width="128" height="128"><br>
 顯示名稱 Name ：<?= $this->escape($this->user->getDisplayName()) ?><br>
 <div class="alert alert-primary" role="alert">
-    (若想變更頭像或是顯示名稱，請至 g0v Slack 變更，並在這邊重新登入。) If you want to change the photo or name, please do it on g0v Slack and back to refrech this page.</div>
+    (若想變更頭像或是顯示名稱，請至 g0v Slack 變更，並在這邊重新登入。 If you want to change the photo or name, please do it on g0v Slack and back to refrech this page.)</div>
 <div class="input-group">
     <div class="input-group-prepend">
         <span class="input-group-text">三個關鍵字 3 Keywords</span>
@@ -22,9 +22,9 @@ Slack ID：<?= $this->escape($this->user->account) ?><br>
     <input type="text" class="form-control" name="keyword">
 </div>
 錄音 Record：<button id="record" class="btn btn-primary">按我錄音 Start</button>
-<button id="replay" style="display:none" class="btn btn-primary">按我聽錄音 Listen the recording</button>
+<button id="replay" style="display:none" class="btn btn-primary">按我聽錄音 Result</button>
 <audio id="replay-audio"></audio>
-<div id="record-time" class="alert alert-primary" role="alert">(目前沒有錄音，若不錄音將會以語音念出您的三個關鍵字） I don't have your recording so I can't speak for you.</div>
+<div id="record-time" class="alert alert-primary" role="alert">(目前沒有錄音，若不錄音將會以語音念出您的三個關鍵字。 I don't have your recording so I can't speak for you.）</div>
 <?php if ($this->intro) { ?>
 <?php $data = json_decode($this->intro->data) ?>
 <script>
@@ -39,7 +39,7 @@ $('#record-time').text('有錄音記錄，錄音長度 ' + record_length.toPreci
 <?php } ?>
 </script>
 <?php } ?>
-<button type="submit" class="btn btn-primary">儲存 Save</button>
+<button type="submit" class="btn btn-primary">儲存 SAVE</button>
 </form>
 <script>
 var recorder;
@@ -49,7 +49,9 @@ var record_ending = false;
 setInterval(function(){
 	if (!record_ending && $('#record').data('record_at')) {
 		var delta = ((new Date).getTime() - $('#record').data('record_at')) / 1000;
-        $('#record-time').text('錄音中：' + delta.toPrecision(2) + ' 秒 / ' + intro_duration);
+		$('#record-time').text('錄音中 Recording：' + delta.toPrecision(2) + ' 秒 Sec.');
+		if (delta > 10) {
+        $('#record-time').text('錄音中 Recording：' + delta.toPrecision(2) + ' 秒 Sec. / ' + intro_duration);
         if (delta > intro_duration) {
             record_ending = true;
 			recordButtonClick();
@@ -91,20 +93,20 @@ var recordButtonClick = function(e){
 		var delta = ((new Date).getTime() - $('#record').data('record_at')) / 1000;
 		$(this).data('record_length', delta);
 		$(this).data('record_at', null);
-		$(this).text('按我錄音');
+		$(this).text('按我錄音 Click to record');
 		recorder.stop();
     } else {
         record_ending = false;
 		$(this).data('record_at', new Date);
 		$('#replay').hide();
-		$(this).text('結束錄音');
+		$(this).text('結束錄音 Finish the record');
 		recorder.start();
 	}
 };
 
 var onRecordingReady = function(e){
 	if (e.data.size == 0) {
-        alert('錄音失敗，請確認是否有接麥克風');
+        alert('錄音失敗，請確認是否有接麥克風 Error, please check the mic,');
         return;
 }
     var reader = new FileReader();
@@ -117,7 +119,7 @@ var onRecordingReady = function(e){
     $('[name="record_length"]').val($('#record').data('record_length') * 1000);
     $('[name="record_type"]').val(e.data.type);
 	$('#replay').show();
-	$('#record-time').text('錄音完成，錄音長度 ' + $('#record').data('record_length').toPrecision(2) + ' 秒');
+	$('#record-time').text('錄音完成，錄音長度 FINISHED. Record Length' + $('#record').data('record_length').toPrecision(2) + ' 秒 Sec.');
 };
 
 $('#replay').click(function(e){
@@ -131,11 +133,11 @@ recordButton.addEventListener('click', recordButtonClick);
 </script>
 <?php } else { ?>
 您需要有 g0v Slack 帳號，才能在這裡錄自介喔。 You need to sign up on g0v Slack first.<br>
-註冊帳號請按 Sign up<a href="https://join.g0v.tw">這裡 HERE</a><br>
-已經有 g0v Slack 帳號請按 Or <a href="/login/?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>">登入 Sign In</a><br>
+註冊帳號請按 Sign up <a href="https://join.g0v.tw">這裡 Here</a><br>
+已經有 g0v Slack 帳號請按 or <a href="/login/?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>">登入 Sign In</a><br>
 <?php } ?>
 <hr>
-<h2>其他人的自介 g0ver's Intro</h2>
+<h2>所有人的自介 g0ver's Intro</h2>
 <a href="/event/downloadcsv/<?= $this->event->id ?>">下載成 CSV Download as CSV</a>
 <a href="/api/event/intro/?event_id=<?= urlencode($this->event->id) ?>">API</a>
 <style>
