@@ -1,74 +1,1676 @@
-<?= $this->partial('common/header.phtml', $this) ?>
-<h1><?= $this->escape($this->event->name) ?></h1>
-<p id="event-description"></p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>代稱</th>
-            <th>標題</th>
-            <th>共筆</th>
-            <th>坑主</th>
-            <th>成員</th>
-        </tr>
-    </thead>
-    <tbody id="channel-list"></tbody>
-</table>
-<script id="tmpl-channel-tr" type="text/html">
-<tr class="channel-tr">
-<td><a href="" target="_blank" class="channel-link"></a></td>
-<td class="channel-title"></td>
-<td><a href="" target="_blank" class="hackmd-link">HackMD</a></td>
-<td class="owner-list"></td>
-<td class="member-list"></td>
-</tr>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>線上揪松 Jothon Online</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="//meet.jit.si/libs/lib-jitsi-meet.min.js"></script>
+<style>
+
+body {
+	overflow: hidden;
+}
+.container-fluid {
+    display: flex;
+    flex-direction: column;
+}
+
+nav.navbar {
+	flex: 0;
+}
+
+#screen-row {
+    flex: 1 0 auto;
+}
+
+.channel-area {
+	flex: 1 1 auto;
+}
+
+.main-area {
+	height: 100%;
+}
+
+#main-area-left {
+  flex: 1 0 0px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.screen-left-content {
+	height: 100%;
+	display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+#screen-row .screen-left {
+	display: flex;
+  flex-direction: column;
+}
+
+#screen-row .screen-right {
+  display: flex;
+  flex-direction: column;
+}
+
+#screen-row .feature-area {
+	flex: 0;
+}
+
+#main-right-feature-list {
+    flex: 0 0 auto;
+}
+
+#main-feature-list, #channel-feature-list{
+	float: right;
+}
+
+#main-right-content {
+    flex: 1 0 0px;
+    overflow: auto;
+}
+.main-right-chat {
+	height: 100%;
+	display: flex;
+    flex-direction: column;
+}
+#main-right-video {
+    height: 200px;
+    flex-grow: 0;
+}
+#main-right-channel, #main-right-chat {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+#main-right-channel-list {
+    flex: 1 0 auto;
+}
+
+#main-chat-textarea, #channel-chat-textarea {
+    width: 100%;
+    flex: 1 1 auto;
+	height: 0px;
+	overflow: auto;
+}
+
+#player {
+	position: fixed;
+}
+
+.member-image {
+    width: 120px;
+    height: 120px;
+}
+
+#main-right-member .v-1,.v-2,.v-3,.v-4,.v-5 {
+    opacity: 0%;
+    position: absolute;
+    left: 0px;
+}
+#main-right-member .v-1 {
+    top: 0px;
+}
+#main-right-member .v-2 {
+    top: 20px;
+}
+#main-right-member .v-3 {
+    top: 40px;
+}
+#main-right-member .v-4 {
+    top: 60px;
+}
+#main-right-member .v-5 {
+    top: 80px;
+}
+
+#main-right-member {
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: 100%;
+}
+
+.member-box {
+    height: 120px;
+    width: 120px;
+    position: relative;
+	float: left;
+	display: inline;
+}
+
+.member-avatar {
+    width: 120px;
+    height: 120px;
+}
+.member-video {
+    width: 120px;
+    height: 120px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    display: none;
+}
+.member-box.has-video .member-video {
+    display: block;
+}
+.member-box.has-video .member-avatar {
+    width: 32px;
+    height: 32px;
+}
+.member-box.has-video .member-image {
+    width: 32px;
+    height: 32px;
+    opacity: 50%;
+}
+.member-status {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+}
+
+.member-displayname {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    background-color: rgba(255,255,255,0.5);
+}
+
+#track-video {
+    width: 100%;
+    height: 100%;
+    display: none;
+}
+
+#channel-no-video {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+#channel-no-video .card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+}
+
+.has-video #channel-no-video {
+    display: none;
+}
+
+.has-video #track-video {
+    display: block;
+}
+
+#jitsi-logo {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    background: black;
+}
+#jitsi-controller {
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	display: flex;
+	flex-direction: row;
+}
+#main-right-caption {
+    height: 100%;
+}
+#caption-textarea {
+    height: 100%;
+    overflow: scroll;
+}
+
+#main-area-intro {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+#intro-row {
+  flex: 1 0 auto;
+  min-height: 100px;
+}
+
+#intro-row > div {
+  border: 1px solid #AAA;
+  border-radius: 3px;
+}
+</style>
+</head>
+<body>
+<div class="container-fluid">
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="/">線上揪松 Jothon Online</a>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+            <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+            </li>
+			<!--<li class="nav-item dropdown nav-login" style="display:none">
+            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">管理者功能</a>
+            <div class="dropdown-menu" aria-labelledby="adminDropdown">
+                <a class="dropdown-item" href="/admin/event">活動管理 Event</a>
+                <a class="dropdown-item" href="/admin/member">成員管理 Member</a>
+			</div>
+            </li>-->
+			<li class="nav-item dropdown nav-login" style="display:none">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hi! <span id="name"></span></a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item link-logout" href="#">登出 Sign Out</a>
+			</div>
+            </li>
+            <li class="nav-item nav-logout" style="display:none">
+            <a class="nav-link link-login" href="#">登入 Sign In</a>
+            </li>
+        </ul>
+        <form class="form-inline my-2 my-lg-0" id="form-nickname" style="display:none">
+            Nickname: 
+            <input class="form-control mr-sm-2" placeholder="Nobody" name="nickname" value="nobody">
+        </form>
+
+    </div>
+</nav>
+<div class="row" id="screen-row">
+	<div class="col-9 screen-left">
+		<div class="screen-left-content" id="screen-left-content-main" style="display:none">
+			<div class="feature-area">
+				<h1 style="display: inline" id="main-title"></h1>
+				<ul class="nav nav-tabs" id="main-feature-list">
+                    <li class="nav-item" id="main-feature-video">
+					<a href="#" class="nav-link active main-switch" data-tab="video">直播</a>
+					</li>
+					<li class="nav-item">
+					<a href="#" class="nav-link main-switch" data-tab="intro">自我介紹</a>
+					</li>
+				</ul>
+			</div><!-- .feature-area -->
+			<div id="main-area-left">
+				<div class="main-area" id="main-area-video"></div>
+        <div class="main-area" id="main-area-intro" style="display:none;">
+          <div class="row justify-content-center" id="intro-row">
+          </div>
+				</div>
+      </div>
+		</div><!-- #screen-left-content-main -->
+		<div class="screen-left-content" id="screen-left-content-channel" style="display:none">
+			<div class="feature-area">
+				<h1 style="display: inline" id="channel-title"></h1>
+				<ul class="nav nav-tabs" id="channel-feature-list">
+					<li class="nav-item">
+					<a href="#" class="nav-link active channel-switch" data-tab="hackmd">共筆</a>
+					</li>
+					<li class="nav-item">
+					<a href="#" class="nav-link channel-switch" data-tab="video">影音畫面</a>
+					</li>
+					<li class="nav-item">
+					<a href="#" class="nav-link" id="button-back-to-main">回大廳</a>
+					</li>
+				</ul>
+			</div><!-- .feature-area -->
+			<div class="channel-area" id="channel-area-hackmd">
+				<iframe src="" style="width: 100%; height: 100%"></iframe>
+			</div>
+			<div class="channel-area" id="channel-area-video" style="display:none">
+        <video autoplay="1" style="width: 100%; height: 100%" id="track-video"></video>
+        <div id="channel-no-video">
+            <div class="card" style="width: 256px;">
+                <img src="" class="card-img-top" alt="" width="256" height="256">
+                <div class="card-body">
+                    <h5 class="card-title">Card title</h5>
+                    <p class="card-text"></p>
+                </div>
+            </div>
+        </div>
+        <div id="jitsi-logo"><a href="http://jitsi.org/" target="_blank"><img src="https://meet.jit.si/images/watermark.png" width="100" height="45"></a></div>
+			</div><!-- #channel-area-video -->
+		<div id="jitsi-controller">
+        <div class="list-group-item">
+        <div class="custom-control custom-switch" style="float: left">
+            <input type="checkbox" class="custom-control-input" id="auth-microphone">
+            <label class="custom-control-label" for="auth-microphone">麥克風</label>
+        </div>
+        </div>
+        <div class="list-group-item">
+        <div class="custom-control custom-switch" style="float: left">
+            <input type="checkbox" class="custom-control-input" id="auth-camera">
+            <label class="custom-control-label" for="auth-camera">攝影機</label>
+        </div>
+        </div>
+        <div class="list-group-item">
+        <div class="custom-control custom-switch" style="float: left">
+            <input type="checkbox" class="custom-control-input" id="auth-screen">
+            <label class="custom-control-label" for="auth-screen">螢幕分享</label>
+        </div>
+        </div>
+			</div>
+		</div><!-- #screen-left-content-channel-->
+	</div><!-- .screen-left -->
+	<div class="col-3 screen-right">
+		<ul id="main-right-feature-list" class="nav nav-tabs">
+			<li class="nav-item main-item channel-item">
+			<a href="#" class="nav-link active main-switch" data-tab="channel">頻道區</a>
+			</li>
+			<li class="nav-item main-item channel-item">
+			<a href="#" class="nav-link main-switch" data-tab="chat">聊天</a>
+			</li>
+			<li class="nav-item channel-item">
+			<a href="#" class="nav-link main-switch" data-tab="caption">逐字稿</a>
+			</li>
+			<li class="nav-item channel-item" style="display:none">
+			<a href="#" class="nav-link main-switch" data-tab="member">成員</a>
+			</li>
+		</ul>
+		<div id="main-right-content">
+			<div class="main-right" id="main-right-channel">
+                <div id="main-right-channel-list"></div>
+            </div>
+			<script id="tmpl-main-right-channel" type="text/html">
+<div class="card" style="width: 18rem;">
+<div class="card-body">
+<h5 class="card-title"></h5>
+<h6 class="card-subtitle mb-2 text-muted"></h6>
+<p class="card-text"></p>
+<a href="#" class="card-link click-enter-channel" style="display:none">進入 Enter</a>
+</div>
+</div>
+			</script>
+<script id="tmpl-chat-message" type="text/html">
+<div class="message">
+    <div class="content">
+        <div>
+            <span class="user-name" title=""><strong></strong></span>
+            <span class="message-time" title=""></span>
+        </div>
+    </div>
+</div>
+</script>
+            <div class="main-right" id="main-right-caption" style="display: none">
+                <div id="caption-textarea"></div>
+            </div>
+			<div class="main-right" id="main-right-chat" style="display: none">
+				<ul id="main-right-chat-list" class="nav nav-tabs" style="display: none">
+					<li class="nav-item">
+					<a href="#" class="nav-link active main-switch" data-tab="main">大廳</a>
+					</li>
+					<li class="nav-item">
+					<a href="#" class="nav-link main-switch" data-tab="channel">本頻道</a>
+					</li>
+				</ul>
+				<div class="main-right-chat" id="main-right-chat-main">
+					<div id="main-chat-textarea"></div>
+					<form id="form-main-chat">
+						<input type="text" name="talk" class="form-control" placeholder="說些什麼 Say something" aria-label=">說些什麼 Say something" aria-describedby="button-addon2">
+					</form>
+				</div>
+				<div class="main-right-chat" id="main-right-chat-channel" style="display:none">
+					<div id="channel-chat-textarea"></div>
+					<form id="form-channel-chat">
+						<input type="text" name="talk" class="form-control" placeholder="說些什麼 Say something" aria-label=">說些什麼 Say something" aria-describedby="button-addon2">
+					</form>
+				</div>
+            </div>
+<script id="tmpl-member-box" type="text/html">
+<div class="member-box">
+<div class="member-avatar">
+<img class="member-image rounded" src="" style="display:none">
+<div class="member-nointro" style="display:none">無自介使用者</div>
+</div>
+<video class="member-video" autoplay="1"></video>
+<span class="member-displayname">Fellow Jitster</span>
+<span class="member-status">
+<i class="volume-status fas fa-volume-mute" style="display:none"></i>
+<i class="microphone-status fas fa-microphone-alt"></i>
+<i class="video-status fas fa-video"></i>
+</span>
+<span class="v-all v-1 v-a"><i class="fas fa-circle"></i></span>
+<span class="v-all v-2 v-b"><i class="fas fa-circle"></i></span>
+<span class="v-all v-3 v-c"><i class="fas fa-circle"></i></span>
+<span class="v-all v-4 v-b"><i class="fas fa-circle"></i></span>
+<span class="v-all v-5 v-a"><i class="fas fa-circle"></i></span>
+</div>
+</script>
+			<div class="main-right" id="main-right-member" style="display: none">
+			</div>
+		</div><!-- #main-right-content -->
+		<div id="main-right-video" style="display:none"></div>
+	</div><!-- .screen-right -->
+</div><!-- .row -->
+</div><!-- .container-fluid -->
+<div id="player"></div>
+<div id="audio-pool" style="display:none":></div>
+<div id="toast-area" style="position: absolute; bottom: 30px; left: 30px"></div>
+<script id="tmpl-toast" type="text/html">
+<div class="toast" data-autohide="false">
+  <div class="toast-header">
+    <svg class="bd-placeholder-img rounded mr-2" width="20" height="20" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img"><rect width="100%" height="100%" fill="#007aff"></rect></svg>
+    <strong class="mr-auto">Bootstrap</strong>
+    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="toast-body"></div>
+</div>
 </script>
 <script>
-var get_user_list = function(users, user_infos){
-    var div_dom = $('<div></div>');
-    var infos = {};
-    for (var user_info of user_infos) {
-        infos[user_info.slack_id] = user_info;
+var cors_get = function(url) {
+	var d = new Promise(function(resolve, reject){
+			$.ajax({
+				url: url,
+				success: function(ret){
+					resolve(ret);
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					reject(jqXHR, textStatus, errorThrown);
+				},
+				xhrFields: { withCredentials: true }
+			});
+		}.bind(this));
+	return d;
+}
+
+var event_id = '';
+var enter_channel_id = '';
+if (location.pathname.match('^/meet/show/')) {
+    var matches = location.pathname.match('^/meet/show/([^/?]+)');
+	$('.screen-left-content').hide();
+	$('#screen-left-content-main').show();
+    event_id = matches[1];
+} else if (location.pathname.match('^/meet/channel/')) {
+    var matches = location.pathname.match('^/meet/channel/([^/?]+)/(\\d+)');
+	$('.screen-left-content').hide();
+	$('#screen-left-content-channel').show();
+    event_id = matches[1];
+    enter_channel_id = matches[2];
+}
+var event_info;
+var player;
+var channels = {};
+var api_url = 'https://meet.jothon.online/';
+
+$(window).resize(function(e){
+    var width = $('body').width();
+    var height = window.innerHeight;
+	$('.container-fluid').css({width: width, height: height});
+}).resize();
+
+const options = {
+    hosts: {
+                    domain: "meet.jit.si",
+                    muc: "conference.meet.jit.si",
+                    focus: "focus.meet.jit.si",
+                },
+                
+                //externalConnectUrl: "https://meet.jit.si/http-pre-bind",
+                serviceUrl: "https://meet.jit.si/http-bind",
+                //websocket: "wss://meet.jit.si/xmpp-websocket",
+                clientNode: "http://jitsi.org/jitsimeet",
+                openBridgeChannel: 'websocket',
+};
+
+const initOptions = {
+    disableAudioLevels: false,
+
+	disableSimulcast: true,
+    // The ID of the jidesha extension for Chrome.
+    desktopSharingChromeExtId: 'mbocklcggfhnbahlnepmldehdhpjfcjp',
+
+    // Whether desktop sharing should be disabled on Chrome.
+    desktopSharingChromeDisabled: false,
+
+    // The media sources to use when using screen sharing with the Chrome
+    // extension.
+    desktopSharingChromeSources: [ 'screen', 'window' ],
+
+    // Required version of Chrome extension
+    desktopSharingChromeMinExtVersion: '0.1',
+
+    // Whether desktop sharing should be disabled on Firefox.
+    desktopSharingFirefoxDisabled: false,
+};
+
+var main_connection;
+var channel_connection;
+var channel_options;
+
+var connect_main_jitsi = function(){
+	JitsiMeetJS.setLogLevel(JitsiMeetJS.logLevels.ERROR);
+    JitsiMeetJS.init(initOptions);
+    main_connection = new JitsiMeetJS.JitsiConnection(null, null, options);
+
+	var d = new Promise(function(resolve, reject){
+		main_connection.addEventListener(
+			JitsiMeetJS.events.connection.CONNECTION_ESTABLISHED,
+			resolve
+			);
+		main_connection.addEventListener(
+			JitsiMeetJS.events.connection.CONNECTION_FAILED,
+			reject);
+		main_connection.addEventListener(
+			JitsiMeetJS.events.connection.CONNECTION_DISCONNECTED,
+			function(){
+			});
+
+		main_connection.connect();
+	}.bind(this));
+	return d;
+};
+
+var channel_options = null;
+var connect_channel_jitsi = function(domain, name, confOptions){
+	var d = new Promise(function(resolve, reject){
+        if (null === channel_options) {
+            channel_options = options;
+            channel_options.domain = domain;
+            channel_options.hosts.domain = domain;
+            channel_options.hosts.muc = 'conference.' + domain;
+            channel_options.hosts.focus = 'focus.' + domain;
+            channel_options.serviceUrl = 'https://' + domain + '/http-bind';
+            channel_options.websocket= 'wss://' + domain + '/xmpp-websocket';
+            channel_options.openBridgeChannel = 'websocket';
+        } else if (channel_connection) {
+            channel_connection.disconnect();
+        }
+
+        JitsiMeetJS.setLogLevel(JitsiMeetJS.logLevels.ERROR);
+        JitsiMeetJS.init(initOptions);
+        channel_connection = new JitsiMeetJS.JitsiConnection(null, null, channel_options);
+
+		channel_connection.addEventListener(
+            JitsiMeetJS.events.connection.CONNECTION_ESTABLISHED,
+            function(){ resolve(confOptions); }
+			);
+		channel_connection.addEventListener(
+			JitsiMeetJS.events.connection.CONNECTION_FAILED,
+			reject);
+		channel_connection.addEventListener(
+			JitsiMeetJS.events.connection.CONNECTION_DISCONNECTED,
+			function(){
+			});
+
+        channel_connection.connect();
+	}.bind(this));
+	return d;
+};
+
+var main_room = null;
+var main_room_id = '';
+var main_users = {};
+var channel_users = {};
+var channel_room = null;
+var user_info = {};
+var current_channel_id = null;
+var login_data;
+var audio_track = null;
+
+var update_channel_user_list = function(){
+	for (var id in channel_room.participants) {
+		user = channel_room.participants[id];
+		if ('undefined' === typeof(channel_users[id])) {
+			channel_users[id] = {};
+		}
+		channel_users[id].slack_id = user.getProperty('slack_id');
+        channel_users[id].name = user.getDisplayName();
+        if ('undefined' === typeof(channel_users[id].name)) {
+            channel_users[id].name = 'nobody';
+        }
+	}
+
+    for (var id in channel_users) {
+        if ('me' != id) {
+            if ('undefined' === typeof(channel_room.participants[id])) {
+                delete(channel_users[id]);
+                $('#member-' + id).remove();
+                continue;
+            }
+			participant = channel_room.participants[id];
+		} else {
+			participant = false;
+		}
+        channel_user = channel_users[id];
+        if (participant) {
+            var has_audio = false;
+            for (var track of participant.getTracks()) {
+                if (track.getType() != 'audio') {
+                    continue;
+                }
+                has_audio = true;
+                if ($('#audio-' + id).length == 0) {
+                    $('#audio-pool').append(`<audio id="audio-${id}" autoplay="1" class="remote" />`);
+                }
+                var old_track = $('#audio-' + id).data('track');
+                if (old_track && old_track.ssrc != track.ssrc) {
+                    old_track.detach($('#audio-' + id)[0]);
+                }
+                if (!old_track || old_track.ssrc != track.ssrc) {
+                    track.attach($('#audio-' + id)[0]);
+                    $('#audio-' + id).data('track', track);
+                }
+                if (track.muted) {
+                    $(`#member-${id} .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+                } else {
+                    $(`#member-${id} .microphone-status`).addClass('fa-microphone-alt').removeClass('fa-microphone-alt-slash');
+                }
+                try {
+                    $(`#audio-${id}`)[0].play().catch(error => {
+                    });;
+                } catch (e) {
+                }
+                if ($(`#audio-${id}`)[0].paused) {
+                    add_toast('需要您按確認以聽到聲音', '需要您按確認按鈕才能讓您聽到聲音', '#3333ff', reattach_audio, 'audio_click');
+                }
+            }
+            if (!has_audio) {
+                $(`#member-${id} .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+            }
+
+            var has_video = false;
+            for (var track of participant.getTracks()) {
+                if (track.getType() != 'video') {
+                    continue;
+                }
+                has_video = true;
+                var video_dom = $('#member-' + id + ' .member-video');
+                var old_track = video_dom.data('track');
+                if (old_track && old_track.ssrc != track.ssrc) {
+                    old_track.detach(video_dom[0]);
+                }
+                if (!old_track || old_track.ssrc != track.ssrc) {
+                    track.attach(video_dom[0]);
+                    video_dom.data('track', track);
+                }
+
+                if (track.muted) {
+                    $('#member-' + id).removeClass('has-video');
+                    $('#member-' + id + ' .video-status').removeClass('fa-video').addClass('fa-video-slash');
+                } else {
+                    $('#member-' + id).addClass('has-video');
+                    $('#member-' + id + ' .video-status').addClass('fa-video').removeClass('fa-video-slash');
+                }
+            }
+            if (!has_video) {
+                $('#member-' + id).removeClass('has-video');
+                $('#member-' + id + ' .video-status').removeClass('fa-video').addClass('fa-video-slash');
+            }
+        }
+        if ($('#member-' + id).length == 0) {
+            play_sound('https://meet.jit.si/sounds/joined.wav');
+			var member_box = $($('#tmpl-member-box').html());
+			member_box.attr('id', `member-${id}`);
+			if (participant && !participant.isAudioMuted()) {
+				$('.microphone-status', member_box).removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
+			} else {
+                $('.microphone-status', member_box).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+			}
+			if (participant && !participant.isVideoMuted()) {
+				$('.video-status', member_box).removeClass('fa-video-slash').addClass('fa-video');
+			} else {
+				$('.video-status', member_box).removeClass('fa-video').addClass('fa-video-slash');
+			}
+			$('#main-right-member').append(member_box);
+		}
+		if (channel_user.slack_id && 'undefined' !== typeof(user_info[channel_user.slack_id])) {
+                var info = user_info[channel_user.slack_id];
+                $(`#member-${id} .member-displayname`).text(info.account);
+                $(`#member-${id} img`).attr('src', info.avatar);
+                $(`#member-${id} .member-image`).show();
+                $(`#member-${id} .member-nointro`).hide();
+                $(`#member-${id}`).attr('title', `Keyword: ${info.keyword}`) ;
+                $(`#member-${id}`).tooltip({placement: 'top'});
+        } else {
+                $(`#member-${id} .member-displayname`).text(channel_user.name);
+                $(`#member-${id} img`).attr('src', get_nobody_image(channel_user.name));
+                $(`#member-${id} .member-image`).show();
+                $(`#member-${id} .member-nointro`).hide();
+                $(`#member-${id}`).attr('title', 'nobody');
+                $(`#member-${id}`).tooltip({placement: 'top'});
+        }
+	}
+};
+
+var update_main_user_list = function(){
+	for (var id in main_room.participants) {
+		var user = main_room.participants[id];
+		var user_data;
+		try {
+			user_data = JSON.parse(user.getProperty('user_data'));
+		} catch (e) {
+			user_data = null;
+		}
+		main_users[id] = {
+			slack_id: user.getProperty('slack_id'),
+			channel: user.getProperty('channel'),
+            user_data: user_data,
+            name: user.getDisplayName(),
+		};
+        if ('undefined' === typeof(main_users[id].name)) {
+            main_users[id].name = 'nobody';
+        }
+	}
+
+	var each_channel_users = {};
+	for (var id in main_users) {
+        var main_user = main_users[id];
+        if (id != 'me' && 'undefined' === typeof(main_room.participants[id])) {
+            delete(main_users[id]);
+            continue;
+        }
+		if ('undefined' === typeof(main_user.channel)) {
+			continue;
+		}
+		if ('undefined' === typeof(each_channel_users[main_user.channel])) {
+			each_channel_users[main_user.channel] = [];
+		}
+        each_channel_users[main_user.channel].push({
+            slack_id: main_user.slack_id,
+            name: main_user.name,
+        });
+		if (null !== main_user.user_data) {
+			user_info[main_user.slack_id] = main_user.user_data;
+        }
+	}
+
+	$('#main-right-channel-list .card').each(function(){
+		var channel_id = $(this).data('channel_id');
+		$('.card-text', this).html('');
+		if ('undefined' === typeof(each_channel_users[channel_id])) {
+			return;
+		}
+		for (var each_user of each_channel_users[channel_id]) {
+            if ('undefined' === typeof(user_info[each_user.slack_id])) {
+                if ('string' === typeof(each_user.name)) {
+                    $('.card-text', this).append(
+                        $('<img>').attr({src: get_nobody_image(each_user.name), width:50, height:50})
+                    );
+                }
+			} else {
+                $('.card-text', this).append(
+                    $('<img>').attr({src: user_info[each_user.slack_id].avatar, width:50, height:50})
+                );
+            }
+		}
+
+	});
+};
+
+var join_main_room = function(){
+	var confOptions = {
+		openBridgeChannel: true,
+	    confID: '',
+    };
+    main_room_id = 'jothononlinemain' + event_info.event.seq;
+    confOptions.confID = 'meet.jit.si' + '/' + main_room_id;
+    main_room = main_connection.initJitsiConference(main_room_id, confOptions);
+	main_users.me = {};
+	if (login_data !== null) {
+		main_room.setDisplayName(login_data.account);
+		main_room.setLocalParticipantProperty('slack_id', login_data.slack_id);
+		main_room.setLocalParticipantProperty('user_data', JSON.stringify(login_data));
+		main_users.me.slack_id = login_data.slack_id;
+        main_users.me.user_data = login_data;
+        main_users.me.name = login_data.account;
+	} else {
+        main_room.setLocalParticipantProperty('user_data', JSON.stringify(null));
+        main_users.me.name = get_my_nickname();
+        main_room.setDisplayName(main_users.me.name);
+	}
+    main_room.on(
+        JitsiMeetJS.events.conference.CONFERENCE_JOINED,
+		function(){
+			update_main_user_list();
+
+			main_room.on(JitsiMeetJS.events.conference.USER_JOINED, (id, user) => {
+				update_main_user_list();
+			});
+			main_room.on(JitsiMeetJS.events.conference.MESSAGE_RECEIVED, (id, text, ts, nick, other) => {
+				add_main_chat_message(id, text, ts, nick);
+			});
+			main_room.on(JitsiMeetJS.events.conference.USER_LEFT, (id, user) => {
+				delete(main_users[id]);
+				update_main_user_list();
+			});
+			main_room.on(JitsiMeetJS.events.conference.PARTICIPANT_PROPERTY_CHANGED, (user, text, ts) => {
+				if (['user_data', 'slack_id', 'channel'].indexOf(text) >= 0) {
+					update_main_user_list();
+				}
+			});
+            main_room.on(JitsiMeetJS.events.conference.ENDPOINT_MESSAGE_RECEIVED, (participant, message) => {
+			});
+			main_room.on(JitsiMeetJS.events.conference.DISPLAY_NAME_CHANGED, (id, name) => {
+                update_main_user_list();
+			});
+	});
+    main_room.join();
+};
+
+cors_get(api_url + 'api/event/channel?event_id=' + encodeURIComponent(event_id)).then(function(ret){ event_info = ret.data;
+	$('#main-title').text(event_info.event.name);
+
+	$('#main-right-channel-list').html('');
+	for (var channel of ret.data.channels) {
+	channels[channel.channel_id] = channel;
+		var channel_dom = $($('#tmpl-main-right-channel').html());
+        $('.card-title', channel_dom).text(channel.meta.title);
+        $('.card-link', channel_dom).attr('href', '/meet/channel/' + event_info.event.id + '/' + channel.channel_id);
+		$('.card-subtitle', channel_dom).text(channel.name);
+		channel_dom.data('channel_id', channel.channel_id);
+		$('#main-right-channel-list').append(channel_dom);
     }
 
-    users.map(function(user){
-        div_dom.append($('<div></div>').addClass('card').css('float', 'left').append(
-            $('<img>').attr({src: infos[user].avatar, width:50, height:50})
-        ).append($('<span></span>').text(infos[user].account)));
-    });
-    return div_dom;
-};
-var update_channel_info = function(){
-    var event_id = <?= json_encode($this->event->id) ?>;
-    $.get('/meet/eventdata/' + event_id, function(ret){
-        $('.channel-tr').addClass('checking');
-        for (var channel of ret.channels) {
-            if (!$('#channel-' + channel.channel_id).length) {
-                var dom = $($('#tmpl-channel-tr').html());
-                dom.attr('id', 'channel-' + channel.channel_id);
-                $('#channel-list').append(dom);
-            }
-            var dom = $('#channel-' + channel.channel_id);
-            $('.channel-link', dom).attr('href', '/meet/channel/' + encodeURIComponent(event_id) + '/' + channel.channel_id).text(channel.name);
-            $('.channel-title', dom).text(channel.meta.title);
-            if ('' !== channel.meta.hackmd) {
-                $('.hackmd-link', dom).attr('href', channel.meta.hackmd).show();
-            } else {
-                $('.hackmd-link', dom).hide();
-            }
-            $('.owner-list', dom).html(get_user_list(channel.data.owners, ret.users));
-            $('.member-list', dom).html(get_user_list(channel.status.user_list.sort(function(a,b){ return a[1] - b[1]; }).map(function(a) { return a[0]; }), ret.users));
-            dom.removeClass('checking');
-            dom.data('order', channel.order);
-        }
-        $('.channel-tr.checking').remove();
-        $('.channel-tr').sort(function(a, b) {
-            return parseInt($(a).data('order')) - parseInt($(b).data('order'));
-        }).appendTo('#channel-list');
 
-        $('#event-description').text(ret.event.data['meet-description']);
-    }, 'json');
+    if ('undefined' !== typeof(event_info.event.data['main-channel-url']) && event_info.event.data['main-channel-url'].match('https://www.youtube.com/watch\\?v=')) {
+        var matches = event_info.event.data['main-channel-url'].match('https://www.youtube.com/watch\\?v=([^&]+)');
+        player = new YT.Player('player', {
+            height: '390',
+            width: '640',
+            videoId: matches[1],
+              events: {
+                'onReady': function(e) {
+                },
+                'onStateChange': function(e) {
+                },
+              }
+            });
+            $('#player').css({
+                width: $('#main-area-video').width(),
+                height: $('#main-area-video').height(),
+                top: $('#main-area-video').offset().top,
+                left: $('#main-area-video').offset().left,
+            });
+    } else {
+        $('#main-feature-video').hide();
+        $('#main-area-video').data('novideo', true);
+        $('#main-feature-list .main-switch[data-tab="page"]').click();
+    }
+	return cors_get(api_url + 'api/me');
+}).then(function(ret){
+	// api me
+	login_data = ret.data.user;
+	$('#name').text(ret.data.user.account);
+	$('.nav-logout').hide();
+    $('.nav-login').show();
+    $('#form-nickname').hide();
+	return connect_main_jitsi();
+}, function(jqXHR, textStatus, errorThrown){
+	// api me error
+	login_data = null;
+	$('.nav-login').hide();
+	$('.nav-logout').show();
+    $('#form-nickname').show();
+    if (localStorage.getItem('nickname')) {
+        $('#form-nickname [name="nickname"]').val(localStorage.getItem('nickname'));
+    }
+	return connect_main_jitsi();
+}).then(function(){
+    return join_main_room();
+}).then(function(){
+    $('#main-right-channel-list .click-enter-channel').show();
+    if (enter_channel_id) {
+        enter_channel(enter_channel_id);
+    }
+});
+
+var get_my_nickname = function(){
+    var name = $('#form-nickname [name="nickname"]').val();
+    if (name == '') {
+        name = 'nobody';
+    }
+    return name;
+};
+
+$('#form-nickname [name="nickname"]').keyup(function(){
+    localStorage.setItem('nickname', $(this).val());
+    var name = get_my_nickname();
+    if (main_room) {
+        main_room.setDisplayName(name);
+    }
+    if (channel_room) {
+        channel_room.setDisplayName(name);
+        channel_users.me.name = name;
+        update_channel_user_list();
+    }
+});
+
+$('.link-login').click(function(e){
+	$(this).attr('href', api_url + 'login?next=' + encodeURIComponent(document.location));
+});
+$('.link-logout').click(function(e){
+	$(this).attr('href', api_url + 'login/logout?next=' + encodeURIComponent(document.location));
+});
+
+$('#main-right-feature-list .nav-link').click(function(e){
+    e.preventDefault();
+    var old_tab = $('#main-right-feature-list .nav-link.active').data('tab');
+    var new_tab = $(this).data('tab');
+    if (old_tab == new_tab) {
+        return;
+    }
+    $('#main-right-feature-list .nav-link').removeClass('active');
+    $(this).addClass('active');
+    $('#main-right-' + old_tab).hide();
+    $('#main-right-' + new_tab).show();
+});
+
+$('#channel-feature-list .channel-switch').click(function(e){
+    e.preventDefault();
+    $('#channel-feature-list .channel-switch').removeClass('active');
+    if ($(this).data('tab') == 'video') {
+        check_main_video();
+    }
+	$(this).addClass('active');
+	$('.channel-area').hide();
+	$('#channel-area-' + $(this).data('tab')).show();
+});
+
+$('#main-right-chat-list .nav-link').click(function(e){
+    e.preventDefault();
+	$('#main-right-chat-list .nav-link').removeClass('active');
+	$(this).addClass('active');
+	$('.main-right-chat').hide();
+	$('#main-right-chat-' + $(this).data('tab')).show();
+});
+
+$('#main-feature-list .nav-link').click(function(e){
+    e.preventDefault();
+    var old_tab = $('#main-feature-list .nav-link.active').data('tab');
+    var new_tab = $(this).data('tab');
+    if (old_tab == new_tab) {
+        return;
+    }
+    $('#main-feature-list .nav-link').removeClass('active');
+    $(this).addClass('active');
+    $('#main-area-' + old_tab).hide();
+    $('#main-area-' + new_tab).show();
+    if (old_tab == 'video') {
+		video_switch('small');
+    } else if (new_tab == 'video') {
+		video_switch('main');
+    }
+});
+
+var video_switch = function(pos) {
+    if ($('#main-area-video').data('novideo')) {
+        return;
+    }
+	if (pos == 'main') {
+        $('#main-right-video').hide();
+        $('#player').css({
+			width: $('#main-area-video').width(),
+			height: $('#main-area-video').height(),
+			top: $('#main-area-video').offset().top,
+			left: $('#main-area-video').offset().left,
+            right: '',
+            bottom: '',
+        });
+	} else {
+        $('#main-right-video').show();
+        $('#player').css({
+             right: 0,
+             bottom: 0,
+             width: $('#main-right-video').width(),
+             height: $('#main-right-video').height(),
+             top: '',
+             left: '',
+        });
+	}
+
 }
-setInterval(update_channel_info, 10000);
-update_channel_info();
+
+$('#main-right-channel').on('click', '.click-enter-channel', function(e){
+	e.preventDefault();
+	var channel_id = $(this).parents('.card').data('channel_id');
+	enter_channel(channel_id);
+});
+
+$('#form-main-chat').submit(function(e){
+    e.preventDefault();
+    if (null === main_room) {
+        alert("聊天室未連線");
+        return;
+    }
+    var say = $('[name="talk"]', this).val();
+    if (!say) {
+        return;
+    }
+    main_room.sendTextMessage(say);
+    $('[name="talk"]', this).val('');
+});
+
+$('#form-channel-chat').submit(function(e){
+    e.preventDefault();
+    if (null === channel_room) {
+        alert("聊天室未連線");
+        return;
+    }
+    var say = $('[name="talk"]', this).val();
+    if (!say) {
+        return;
+    }
+	channel_room.sendTextMessage(say);
+    $('[name="talk"]', this).val('');
+});
+
+var add_channel_caption = function(id, name, text){
+    var d;
+    d = new Date();
+
+    var dom = $('#caption-textarea .message:last');
+    if (dom.length && (d.getTime() - dom.data('ts').getTime() < 60 * 2 * 1000) && id == dom.data('id')) {
+    } else {
+        dom = $($('#tmpl-chat-message').html());
+        dom.data('ts', d);
+        dom.data('id', id);
+        $('.user-name strong', dom).text(name);
+        $('.message-time', dom).text(('00' + d.getHours()).slice(-2) + ':' + ('00' + d.getMinutes()).slice(-2));
+        $('#caption-textarea').append(dom);
+    }
+    $('.content', dom).append($('<div></div>').text(text));
+    $('#caption-textarea').scrollTop($('#caption-textarea')[0].scrollHeight);
+};
+
+var add_main_chat_message = function(id, text, ts, nick){
+    var d;
+    if ('undefined' === typeof(ts)) {
+        d = new Date();
+    } else {
+        d = new Date(ts);
+    }
+
+    var dom = $('#main-chat-textarea .message:last');
+    if (dom.length && (d.getTime() - dom.data('ts').getTime() < 60 * 2 * 1000) && nick == dom.data('nick')) {
+    } else {
+        dom = $($('#tmpl-chat-message').html());
+        dom.data('ts', d);
+        dom.data('nick', nick);
+        $('.user-name strong', dom).text(nick);
+        $('.message-time', dom).text(('00' + d.getHours()).slice(-2) + ':' + ('00' + d.getMinutes()).slice(-2));
+        $('#main-chat-textarea').append(dom);
+    }
+    $('.content', dom).append($('<div></div>').text(text));
+    $('#main-chat-textarea').scrollTop($('#main-chat-textarea')[0].scrollHeight);
+
+    if (!$('#chat-switch').is('.active')) {
+        $('#chat-switch .badge').text(1 + parseInt($('#chat-switch .badge').text())).show();
+    }
+};
+
+var add_channel_chat_message = function(id, text, ts, nick){
+    var d;
+    if ('undefined' === typeof(ts)) {
+        d = new Date();
+    } else {
+        d = new Date(ts);
+    }
+
+    var dom = $('#channel-chat-textarea .message:last');
+    if (dom.length && (d.getTime() - dom.data('ts').getTime() < 60 * 2 * 1000) && nick == dom.data('nick')) {
+    } else {
+        dom = $($('#tmpl-chat-message').html());
+        dom.data('ts', d);
+        dom.data('nick', nick);
+        $('.user-name strong', dom).text(nick);
+        $('.message-time', dom).text(('00' + d.getHours()).slice(-2) + ':' + ('00' + d.getMinutes()).slice(-2));
+        $('#channel-chat-textarea').append(dom);
+    }
+    $('.content', dom).append($('<div></div>').text(text));
+    $('#channel-chat-textarea').scrollTop($('#channel-chat-textarea')[0].scrollHeight);
+
+    if (!$('#chat-switch').is('.active')) {
+        $('#chat-switch .badge').text(1 + parseInt($('#chat-switch .badge').text())).show();
+    }
+};
+
+var recognition = null;
+var current_channel_domain = null;
+var enter_channel = function(channel_id){
+	if (channel_id == current_channel_id && current_channel_id !== null) {
+		return;
+    }
+    if ('undefined' === typeof(channels[channel_id])) {
+        return;
+    }
+
+    window.history.pushState('', '', '/meet/channel/' + event_info.event.id + '/' + channel_id);
+
+	if (null !== current_channel_id) {
+		channel_room.leave();
+		current_channel_id = null;
+	}
+
+	current_channel_id = channel_id;
+	main_room.setLocalParticipantProperty('channel', current_channel_id);
+	main_users.me.channel = current_channel_id
+    update_main_user_list();
+
+
+	var confOptions = {
+		openBridgeChannel: true,
+	    confID: '',
+    };
+    var jitsi_url = channels[channel_id].meta.jitsi_room;
+    var matches = jitsi_url.match('^https://([^/]*)/(.*)$');
+
+    if (matches) {
+        channel_domain = matches[1];
+        channel_room_id = matches[2].toLowerCase();
+        confOptions.confID = channel_domain + '/' + channel_room_id;
+    } else {
+        channel_domain = 'meet.jit.si';
+        channel_room_id = 'jothononlinechannel' + channel_id;
+        confOptions.confID = 'meet.jit.si' + '/' + channel_room_id;
+    }
+    connect_channel_jitsi(channel_domain, channel_room_id, confOptions).then(function(confOptions){
+        channel_room = channel_connection.initJitsiConference(channel_room_id, confOptions);
+        if (login_data !== null) {
+            channel_room.setDisplayName(login_data.account);
+            channel_room.setLocalParticipantProperty('slack_id', login_data.slack_id);
+        } else {
+            channel_room.setDisplayName(get_my_nickname());
+        }
+        channel_room.on(
+            JitsiMeetJS.events.conference.CONFERENCE_JOINED,
+            function(){
+                update_channel_user_list();
+                channel_room.on(JitsiMeetJS.events.conference.TRACK_MUTE_CHANGED, auto_checker);
+                channel_room.on(JitsiMeetJS.events.conference.TRACK_ADDED, auto_checker);
+                channel_room.on(JitsiMeetJS.events.conference.TRACK_REMOVED, auto_checker);
+                channel_room.on(JitsiMeetJS.events.conference.TRACK_AUDIO_LEVEL_CHANGED, level_changed);
+                channel_room.on(JitsiMeetJS.events.conference.USER_JOINED, (id, user) => {
+                    update_channel_user_list();
+                });
+                channel_room.on(JitsiMeetJS.events.conference.MESSAGE_RECEIVED, (id, text, ts, nick, other) => {
+                    add_channel_chat_message(id, text, ts, nick);
+                });
+                channel_room.on(JitsiMeetJS.events.conference.USER_LEFT, (id, user) => {
+                    if (id == $('#channel-area-video').data('playing-user')) {
+                        $('#channel-area-video').data('playing-user', null);
+                        check_main_video();
+                    }
+
+                    delete(channel_users[id]);
+                    $('#member-' + id).remove();
+                    update_channel_user_list();
+                });
+                channel_room.on(JitsiMeetJS.events.conference.PARTICIPANT_PROPERTY_CHANGED, (user, text, ts) => {
+                    if ('slack_id' == text) {
+                        update_channel_user_list();
+                    }
+                });
+                channel_room.on(JitsiMeetJS.events.conference.ENDPOINT_MESSAGE_RECEIVED, (participant, message) => {
+                    if (message.type == 'transcript') {
+                        add_channel_caption(participant, message.name, message.text);
+                    }
+                });
+                channel_room.on(JitsiMeetJS.events.conference.DISPLAY_NAME_CHANGED, (id, name) => {
+                    update_channel_user_list();
+                });
+        });
+        $('#channel-chat-textarea').html('');
+        channel_users = {};
+        channel_users.me = {};
+        if (login_data) {
+            channel_users.me.slack_id = login_data.slack_id;
+            channel_users.me.name = login_data.account;
+        } else {
+            channel_users.me.name = get_my_nickname();
+        }
+        channel_users.me.video_track = null;
+        channel_users.me.audio_track = null;
+        channel_room.join();
+
+        $('#channel-title').text(channels[channel_id].meta.title);
+
+        $('.screen-left-content').hide();
+        $('#screen-left-content-channel').show();
+        $('#main-right-feature-list .nav-item').hide();
+        $('#main-right-feature-list .channel-item').show();
+        $('#main-right-feature-list .main-switch[data-tab="member"]').click();
+        $('#channel-area-hackmd iframe').attr('src', channels[channel_id].meta.hackmd);
+        $('#main-right-chat-list').show();
+        $('#main-right-chat-list .main-switch[data-tab="channel"]').click();
+
+        video_switch('small');
+    });
+};
+
+var back_to_main = function(){
+    window.history.pushState('', '', '/meet/show/' + event_info.event.id);
+	if (null !== current_channel_id) {
+		channel_room.leave();
+		current_channel_id = null;
+	}
+
+	main_room.setLocalParticipantProperty('channel', null);
+	main_users.me.channel = null;
+	update_main_user_list();
+	$('#channel-chat-textarea').html('');
+
+	$('.screen-left-content').hide();
+	$('#screen-left-content-main').show();
+	$('#main-right-feature-list .nav-item').hide();
+	$('#main-right-feature-list .main-item').show();
+	$('#main-right-feature-list .main-switch[data-tab="channel"]').click();
+	$('#main-right-chat-list .main-switch[data-tab="main"]').click();
+	$('#main-right-chat-list').hide();
+
+	video_switch('main');
+};
+
+$('#button-back-to-main').click(function(e){
+	e.preventDefault();
+    if (confirm('您將會離開現在的頻道，確定要離開嗎？Are you sure to exit curreht channel?')) {
+        back_to_main();
+    }
+});
+
+var add_toast = function(title, body, color, callback, id){
+    var dom = $($('#tmpl-toast').html());
+    $('.mr-auto', dom).text(title);
+    $('.toast-body', dom).text(body);
+    if (id) {
+        if ($('#toast-' + id).length) {
+            return;
+        }
+        dom.attr('id', 'toast-' + id);
+    }
+    if (callback) {
+        $('.toast-body', dom).append(
+            $('<form></form>').append($('<button type="submit">OK</button>')).submit(function(e){
+                e.preventDefault();
+                callback();
+                $(this).parents('.toast').find('.close').click();
+            })
+        );
+    }
+    $('rect', dom).attr('fill', color);
+    $('#toast-area').append(dom);
+    dom.toast('show');
+};
+
+var level_changed = function(participant, audioLevel) {
+    $(`#member-${participant} .v-all`).css('opacity', '0%');
+    if (audioLevel >= 1.0) {
+        $(`#member-${participant} .v-a`).css('opacity', '100%');
+    } else if (audioLevel > 0.8) {
+        $(`#member-${participant} .v-a`).css('opacity', '50%');
+    }
+    if (audioLevel > 0.6) {
+        $(`#member-${participant} .v-b`).css('opacity', '100%');
+    } else if (audioLevel > 0.4) {
+        $(`#member-${participant} .v-b`).css('opacity', '50%');
+    }
+    if (audioLevel > 0.2) {
+        $(`#member-${participant} .v-c`).css('opacity', '100%');
+    } else if (audioLevel > 0.01) {
+        $(`#member-${participant} .v-c`).css('opacity', '50%');
+    }
+};
+
+function onLocalTracks(tracks) {
+    for (let i = 0; i < tracks.length; i++) {
+        if (tracks[i].getType() === 'video') {
+			if (channel_room) {
+				channel_room.addTrack(tracks[i]);
+			}
+			channel_users.me.video_track = tracks[i];
+            $('#member-me .video-status').removeClass('fa-video-slash').addClass('fa-video');
+            if (tracks[i].videoType == 'desktop') {
+                $('#auth-screen').prop('checked', true);
+            } else {
+                $('#auth-camera').prop('checked', true);
+            }
+            tracks[i].attach($('#member-me .member-video')[0]);
+            $('#member-me').addClass('has-video');
+        } else if (tracks[i].getType() == 'audio') {
+			audio_track = tracks[i];
+            $('#auth-microphone').prop('checked', true);
+            $('#member-me .microphone-status').removeClass('fa-microphone-alt-slash').addClass('fa-microphone-alt');
+            tracks[i].addEventListener(JitsiMeetJS.events.track.TRACK_AUDIO_LEVEL_CHANGED, function(audioLevel) {
+                level_changed('me', audioLevel);
+            });
+
+			if (channel_room) {
+				channel_room.addTrack(tracks[i]);
+			}
+            if (null !== recognition) {
+                recognition.stop();
+                recognition = null;
+            }
+            if ('undefined' !== typeof(webkitSpeechRecognition)) {
+                recognition = new webkitSpeechRecognition();
+                recognition.onresult = function(event) {
+                    for (var i = 0; i < event.results.length; i ++) {
+                        if (event.results[i].isFinal) {
+                            for (var j = 0; j < event.results[i].length; j ++) {
+                                text = event.results[i][j].transcript;
+                                if (channel_room) {
+                                    try {
+                                        channel_room.broadcastEndpointMessage({type:'transcript', text:text, name:channel_users.me.name});
+                                    } catch (e) {
+                                        // it fails if no other participant.
+                                    }
+                                    add_channel_caption('me', channel_users.me.name, text);
+                                }
+                            }
+                        }
+                    }
+                }
+                recognition.onend = function(event){
+                    recognition.start();
+                };
+                recognition.start();
+            }
+        }
+    }
+}
+
+$('#auth-microphone').change(function(e){
+	if (null === audio_track) {
+        JitsiMeetJS.createLocalTracks({ devices: [ 'audio' ] })
+            .then(onLocalTracks)
+            .catch(error => {
+                $('#auth-microphone').prop('checked', false);
+                add_toast('權限錯誤 Permission Error', '無法得到麥克風權限 Error obtaining microphone permission. ' + error, '#ff3333');
+        });
+	} else {
+        audio_track.mute().then(function(){
+            audio_track.dispose();
+			audio_track = null;
+            level_changed('me', 0);
+            $('#auth-microphone').prop('checked', false);
+            $(`#member-me .microphone-status`).removeClass('fa-microphone-alt').addClass('fa-microphone-alt-slash');
+        });
+	}
+});
+
+$('#auth-camera').change(function(e){
+    var video_track = channel_users.me.video_track;
+
+    if (!$('#auth-camera').prop('checked')) {
+        video_track.mute().then(function(){
+            video_track.dispose();
+            video_track.detach($('#member-me .member-video')[0]);
+			channel_users.me.video_track = null;
+            $('#auth-camera').prop('checked', false);
+            $('#member-me').removeClass('has-video');
+            $(`#member-me .video-status`).removeClass('fa-video').addClass('fa-video-slash');
+        });
+        return;
+    }
+	if (null === video_track) {
+        JitsiMeetJS.createLocalTracks({ devices: [ 'video' ] })
+            .then(onLocalTracks)
+            .catch(error => {
+                $('#auth-camera').prop('checked', false);
+                add_toast('權限錯誤 Permission Error', '無法得到攝影機權限 Error obtaining camera permission. ' + error, '#ff3333');
+            });
+    } else {
+        video_track.mute().then(function(){
+            video_track.dispose();
+            video_track.detach($('#member-me .member-video')[0]);
+			channel_users.me.video_track = null;
+            $('#auth-screen').prop('checked', false);
+            $('#member-me').removeClass('has-video');
+            $(`#member-me .video-status`).removeClass('fa-video').addClass('fa-video-slash');
+            JitsiMeetJS.createLocalTracks({ devices: [ 'video' ] })
+                .then(onLocalTracks)
+                .catch(error => {
+                    $('#auth-camera').prop('checked', false);
+                    add_toast('權限錯誤 Permission Error', '無法得到攝影機權限 Error obtaining camera permission. ' + error, '#ff3333');
+                });
+            });
+    }
+});
+
+$('#auth-screen').change(function(e){
+    e.preventDefault();
+    var video_track = channel_users.me.video_track;
+
+    if (!$('#auth-screen').prop('checked')) {
+        video_track.mute().then(function(){
+            video_track.dispose();
+            video_track.detach($('#member-me .member-video')[0]);
+			channel_users.me.video_track = null;
+            $('#auth-screen').prop('checked', false);
+            $('#member-me').removeClass('has-video');
+            $(`#member-me .video-status`).removeClass('fa-video').addClass('fa-video-slash');
+        });
+        return;
+    }
+    if (null === video_track) {
+        JitsiMeetJS.createLocalTracks({ devices: [ 'desktop' ] })
+            .then(onLocalTracks)
+            .catch(error => {
+                $('#auth-screen').prop('checked', false);
+                add_toast('權限錯誤 Permission Error', '無法得到攝影機權限 Error obtaining desktop permission. ' + error, '#ff3333');
+            });
+    } else {
+        video_track.mute().then(function(){
+            video_track.dispose();
+            video_track.detach($('#member-me .member-video')[0]);
+			channel_users.me.video_track = null;
+            $('#auth-camera').prop('checked', false);
+            $('#member-me').removeClass('has-video');
+            $(`#member-me .video-status`).removeClass('fa-video').addClass('fa-video-slash');
+            JitsiMeetJS.createLocalTracks({ devices: [ 'desktop' ] })
+                .then(onLocalTracks)
+                .catch(error => {
+                    $('#auth-screen').prop('checked', false);
+                    add_toast('權限錯誤 Permission Error', '無法得到攝影機權限 Error obtaining desktop permission. ' + error, '#ff3333');
+                });
+        });
+    }
+});
+
+var reattach_audio = function(){
+    $('audio.remote').each(function(){
+        var audio_dom = $(this);
+        var track = audio_dom.data('track');
+        if (track) {
+            track.attach(audio_dom[0]);
+            audio_dom[0].play().catch(error => {
+            });
+        }
+        });
+    $('.member-video').each(function(){
+        this.play().catch(error => {
+        });
+    });
+};
+
+var nobody_cache = {};
+var get_nobody_image = function(name){
+    if ('undefined' !== typeof(nobody_cache[name])) {
+        return nobody_cache[name];
+    }
+
+    var canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    canvas.style.width = '256px';
+    canvas.style.height = '256px';
+
+    ctx = canvas.getContext('2d');
+
+    ctx.font = 'normal 200px Arial';
+    ctx.textAlign = 'center';
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 3;
+
+    var str = name.toUpperCase().substr(0, 1);
+    var textSize = ctx.measureText(str);
+    var textHeight = textSize.actualBoundingBoxAscent + textSize.actualBoundingBoxDescent;
+    ctx.strokeText(str, 128, 128 + textHeight / 2);
+
+    nobody_cache[name] = canvas.toDataURL();
+    return nobody_cache[name];
+};
+
+$('#main-right-member').on('click', '.member-box', function(e){
+    e.preventDefault();
+    var id = $(this).attr('id').split('-')[1];
+    $('#channel-area-video').data('playing-user', id);
+    if ('undefined' !== typeof(channel_users[id]) && false !== channel_users[id].slack_id && 'undefined' !== typeof(user_info[channel_users[id].slack_id])) {
+        var info = user_info[channel_users[id].slack_id];
+        $('#channel-no-video img').attr('src', info.avatar);
+        $('#channel-no-video .card-title').text('@' + info.account);
+        $('#channel-no-video .card-text').text('Keyword: ' + info.keyword);
+    } else {
+        $('#channel-no-video img').attr('src', get_nobody_image(channel_users[id].name));
+        $('#channel-no-video .card-title').text(channel_users[id].name);
+        $('#channel-no-video .card-text').text('');
+    }
+
+    update_channel_video();
+});
+
+var check_main_video = function(){
+    var playing_user = $('#channel-area-video').data('playing-user');
+    if (!playing_user || !$(`#member-${playing_user}`).length) {
+        $('.member-box:first()').click();
+    }
+};
+
+var play_sound = function(src){
+    var audio = document.createElement('audio');
+    audio.src = src;
+    audio.addEventListener('ended', function(){
+        this.remove();
+    });
+    audio.play().catch(error => {
+    });;
+};
+
+var auto_checker = function(){
+    // check main channel
+    if (main_room) {
+        try {
+            update_main_user_list()
+        } catch (e) {
+        }
+    }
+
+    if (channel_room) {
+        try {
+            update_channel_user_list();
+        } catch (e) {
+        }
+    }
+
+    update_channel_video();
+};
+
+var update_channel_video = function(){
+    var id = $('#channel-area-video').data('playing-user');
+    var old_track = $('#channel-area-video').data('track');
+    if (id == 'me') {
+        track = channel_users[id].video_track;
+    } else {
+        track = $('#member-' + id + ' .member-video').data('track');
+    }
+    if (track && track.disposed) {
+        track = false;
+    }
+
+    if (!track) {
+        $('#channel-area-video').removeClass('has-video');
+        return;
+    }
+    if (id != 'me' && old_track && old_track.ssrc != track.ssrc) {
+        old_track.detach($('#track-video')[0]);
+    }
+    if (id == 'me' && old_track && old_track != track) {
+        old_track.detach($('#track-video')[0]);
+    }
+    if (id != 'me' && (!old_track || old_track.ssrc != track.ssrc)) {
+        track.attach($('#track-video')[0]);
+        channel_room.selectParticipant(id);
+        $('#channel-area-video').data('track', track);
+    }
+    if (id == 'me' && (!old_track || old_track != track)) {
+        track.attach($('#track-video')[0]);
+        channel_room.selectParticipant(id);
+        $('#channel-area-video').data('track', track);
+    }
+
+    if (track.muted) {
+        $('#channel-area-video').removeClass('has-video');
+    } else {
+        $('#channel-area-video').addClass('has-video');
+    }
+
+};
+
+$(window).bind('beforeunload', unload);
+$(window).bind('unload', unload);
+function unload() {
+    if (channel_room) {
+        channel_room.leave();
+    }
+    if (main_room) {
+        main_room.leave();
+    }
+    if (channel_connection) {
+        channel_connection.disconnect();
+    }
+    if (main_connection) {
+        main_connection.disconnect();
+    }
+}
+setInterval(auto_checker, 5000);
+
+//intro
+cors_get(api_url + 'api/event/intro?event_id=' + encodeURIComponent(event_id)).then(function(ret){   
+  for (var people of ret.data) {
+    var str_temp = people.intro.keyword;
+    if(str_temp.match(",|、|，") == null)
+    {
+      str_temp = str_temp.split(' ').join(',');
+    }
+    var intro_head = `
+      <div class="col-sm-3 text-center p-2 m-2">
+        <div class="data-avatar" style="min-height: 200px; border-radius: 3px;background-position: center center;	background-repeat: no-repeat;	background-size: contain;"></div>
+        <h3 class="p-0 m-0 data-account"></h3>
+        <p class="p-0 data-dispname"></p>
+        <p class="data-keyword"></p>
+      </div>
+    `;
+    var intro_head_dom = $(intro_head); 
+    $('.data-account', intro_head_dom).text(`@${people.user.account}`);
+    $('.data-dispname', intro_head_dom).text(`(${people.user.display_name})`);
+    $('.data-keyword', intro_head_dom).text(`${people.intro.keyword}`);
+    $('.data-avatar', intro_head_dom).css('background-image', 'url(\'' + people.user.avatar + '\')');
+
+    if(people.intro.voice_path != null)
+    {
+      intro_head_dom.append($('<a href="#" class="btn btn-primary play-voice" data-path="">播放自介 Recording</a>').data('path', people.intro.voice_path));
+    }
+    else
+    {
+        intro_head_dom.append($('<a href="#" class="btn btn-primary play-tts" data-text="">機器發音 Robot Speaking</a>').data('text', people.user.display_name + ',' + str_temp));
+    }
+    $('#intro-row').append(intro_head_dom);
+  }
+}); 
+
+$('#intro-row').on('click', '.play-voice', function(e){
+    e.preventDefault();
+    var audio_dom = $('<audio></audio>');
+    audio_dom[0].src = 'https://g0v-intro.s3-ap-northeast-1.amazonaws.com/' + $(this).data('path');
+    audio_dom[0].play();
+});
+$('#intro-row').on('click', '.play-tts', function(e){
+    e.preventDefault();
+    speechSynthesis.speak(new SpeechSynthesisUtterance($(this).data('text')));
+}); 
 </script>
-<?= $this->partial('common/footer.phtml', $this) ?>
+
+</body>
+</html>

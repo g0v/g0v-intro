@@ -1,13 +1,28 @@
 <?= $this->partial('common/header.phtml', $this) ?>
-<h1>收集自介活動</h1>
-<ul>
-<?php foreach (Event::search(arraY('status' => 0)) as $event) { ?>
-<li><a href="/event/show/<?= $event->id ?>"><?= $this->escape($event->name) ?></a></li>
-<?php } ?>
-</ul>
-<h1>已結束活動</h1>
+<h1>進行中活動 Current Events</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>活動名稱 Name</th>
+            <th>自我介紹 Intro</th>
+            <th>活動大廳 Lobby</th>
+                
+    </thead>
+    <tbody>
+    <?php foreach (Event::search(arraY('status' => 0)) as $event) { ?>
+    <?php if ($event->getData()->permission == 1) { continue; } ?>
+    <tr>
+        <td><?= $this->escape($event->name) ?></td>
+        <td><a href="/event/show/<?= $event->id ?>"><?= count(Intro::search(array('event' => $event->id))) ?></a></td>
+        <td><a href="/meet/show/<?= $event->id ?>">Lobby</a></td>
+    </tr>
+    <?php } ?>
+    </tbody>
+</table>
+<h1>已結束活動 Past Events</h1>
 <ul>
 <?php foreach (Event::search(arraY('status' => 1)) as $event) { ?>
+<?php if ($event->getData()->permission == 1) { continue; } ?>
 <li><a href="/event/show/<?= $event->id ?>"><?= $this->escape($event->name) ?></a></li>
 <?php } ?>
 </ul>

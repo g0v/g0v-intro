@@ -33,7 +33,7 @@ class User extends Pix_Table
         $this->_columns['logined_at'] = array('type' => 'int');
         $this->_columns['data'] = array('type' => 'text');
 
-        $this->addIndex('account', array('account'), 'unique');
+        $this->addIndex('account', array('account'));
     }
 
     public static function parseUsers($users)
@@ -41,7 +41,9 @@ class User extends Pix_Table
         $user_accounts = array_map('trim', explode(',', trim($users)));
         $user_ids = array();
         foreach ($user_accounts as $account) {
-            if ($user = User::find_by_account($account)) {
+            if (User::search(array('account' => $account))->count() == 1) {
+                $user_ids[] = User::find_by_account($account)->slack_id;
+            } else if ($user = User::find($account)) {
                 $user_ids[] = $user->slack_id;
             }
         }
@@ -60,5 +62,47 @@ class User extends Pix_Table
             }
         }
         return implode(',', $user_accounts);
+    }
+
+    public static function fetchUser($user_id, $update = false)
+    {
+		$url = sprintf("https://slack.com/api/users.info?user=%s&token=%s", $user_id, getenv('SLACK_ACCESS_TOKEN'));
+		$obj = json_decode(file_get_contents($url));
+		if ($obj->user->profile->display_name) {
+			$account = $obj->user->profile->display_name;
+		} elseif ($obj->user->profile->real_name) {
+			$account = $obj->user->profile->real_name;
+		} else {
+			throw new Exception("{$user_id} account not found");
+        }
+        $display_name = $obj->user->real_name;
+		$data = (array(
+			'slack_id' => $user_id,
+			'account' => $account,
+			'type' => 0,
+			'created_at' => time(),
+			'logined_at' => 0,
+			'data' => json_encode(array(
+				'display_name' => $display_name,
+                'image' => $obj->user->profile->image_original ?: $obj->user->profile->image_512,
+			)),
+        ));
+        print_r($obj);
+        if ($update) {
+            try {
+                $u = User::insert($data);
+                return $u;
+            } catch (Pix_Table_DuplicateException $e) {
+                User::find($user_id)->update(array(
+                    'account' => $account,
+                    'data' => json_encode(array(
+                        'display_name' => $display_name,
+                        'image' => $obj->user->profile->image_original ?: $obj->user->profile->image_512,
+                    )),
+                ));
+            }
+        } else {
+            return User::insert($data);
+        }
     }
 }

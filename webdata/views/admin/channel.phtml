@@ -41,7 +41,7 @@ $orders[$prev_channel->order + 1] = "{$prev_channel->name} 後面";
             <?php } ?>
         </td>
         <td><?= $this->escape($channel->getStatus()->getMeta()->jitsi_room) ?></td>
-        <td><?= ["","公開","邀請"][$channel->getData()->type] ?></td>
+        <td><?= ["","公開","邀請","隱藏"][$channel->getData()->type] ?></td>
         <td><?= $this->escape(User::toUsersString($channel->getData()->owners)) ?></td>
         <td><?= $this->escape(User::toUsersString($channel->getData()->invite_list)) ?></td>
         <td>
@@ -79,6 +79,7 @@ $orders[$prev_channel->order + 1] = "{$prev_channel->name} 後面";
     種類：<select name="type">
         <option value="1" <?= $type == 1 ? ' selected="selected"': '' ?>>公開</option>
         <option value="2" <?= $type == 2 ? ' selected="selected"': '' ?>>邀請</option>
+        <option value="3" <?= $type == 3 ? ' selected="selected"': '' ?>>隱藏</option>
     </select>(邀請只有在名單中才能加入)<br>
     邀請名單：<input type="text" name="invite_list" value="<?= $this->escape(User::toUsersString($this->channel->getData()->invite_list)) ?>"><br>
     <button type="submit">修改</button>
@@ -96,6 +97,7 @@ $orders[$prev_channel->order + 1] = "{$prev_channel->name} 後面";
     種類：<select name="type">
         <option value="1">公開</option>
         <option value="2">邀請</option>
+        <option value="3">隱藏</option>
     </select>(邀請只有在名單中才能加入)<br>
     邀請名單：<input type="text" name="invite_list"><br>
     <button type="submit">新增</button>

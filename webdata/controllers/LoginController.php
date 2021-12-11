@@ -20,7 +20,7 @@ class LoginController extends Pix_Controller
             urlencode($client_id), // client_id
             'identity.basic,identity.avatar', // scope
             urlencode($redirect_uri), // redirect_uri
-            $_GET['next'], // state
+            urlencode($_GET['next']), // state
             "" // team
         );
         return $this->redirect($url);
@@ -81,7 +81,7 @@ class LoginController extends Pix_Controller
             'logined_at' => time(),
             'data' => json_encode(array(
                 'display_name' => $obj->user->real_name,
-                'image' => $obj->user->profile->image_512,
+                'image' => $obj->user->profile->image_original ?: $obj->user->profile->image_512,
             )),
         ));
 

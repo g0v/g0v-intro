@@ -16,7 +16,7 @@ class AdminController extends Pix_Controller
 
     public function eventAction()
     {
-        if (array_key_exists('event_id', $_GET) and $event = Event::find(strval($_GET['event_id']))) {
+        if (array_key_exists('event_id', $_GET) and $event = Event::find_by_id(strval($_GET['event_id']))) {
             $this->view->event = $event;
         }
     }
@@ -27,7 +27,7 @@ class AdminController extends Pix_Controller
             return $this->alert('sToken error', '/admin/event');
         }
         if (array_key_exists('event_id', $_GET)) {
-            if (!$event = Event::find(strval($_GET['event_id']))) {
+            if (!$event = Event::find_by_id(strval($_GET['event_id']))) {
                 return $this->alert("event {$_GET['event_id']} not found", '/admin/event');
             }
             $event->update(array(
@@ -44,14 +44,18 @@ class AdminController extends Pix_Controller
         }
         $event->updateData(array(
             'intro-description' => strval($_POST['intro-description']),
+            'intro-duration' => intval($_POST['intro-duration']),
+            'main-channel-url' => strval($_POST['main-channel-url']),
             'meet-description' => strval($_POST['meet-description']),
+            'permission' => intval($_POST['permission']),
+            'jitsi-site' => strval($_POST['jitsi-site']),
         ));
         return $this->alert('ok', '/admin/event?event_id' . urlencode($event->id));
     }
 
     public function channelAction()
     {
-        if (!array_key_exists('event_id', $_GET) or !$event = Event::find(strval($_GET['event_id']))) {
+        if (!array_key_exists('event_id', $_GET) or !$event = Event::find_by_id(strval($_GET['event_id']))) {
             return $this->alert("event not found", "/admin/event");
         }
 
@@ -66,7 +70,7 @@ class AdminController extends Pix_Controller
         if ($_POST['sToken'] != Session::getStoken()) {
             return $this->alert('sToken error', '/admin/event');
         }
-        if (!array_key_exists('event_id', $_GET) or !$event = Event::find(strval($_GET['event_id']))) {
+        if (!array_key_exists('event_id', $_GET) or !$event = Event::find_by_id(strval($_GET['event_id']))) {
             return $this->alert('event not found', '/admin/event');
         }
         if (array_key_exists('channel_id', $_GET)) {

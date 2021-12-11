@@ -1,0 +1,35 @@
+<?= $this->partial('common/header.phtml', $this) ?>
+<h1>應用程式 App</h1>
+<a href="/oauth">回到應用程式列表 Back to app list</a><br>
+<h2>應用程式資料 App Information</h2>
+<form method="post" action="/oauth/updateapp?id=<?= $this->app->client_id ?>">
+    <input type="hidden" name="sToken" value="<?= Session::getStoken() ?>">
+    應用程式代碼 Client ID: <?= $this->app->client_id ?><br>
+    應用程式名稱 App Name: <input type="text" name="name" value="<?= $this->escape($this->app->getData()->name) ?>"><br>
+    應用程式說明網址 URL of the document of your App: <input type="text" name="doc" value="<?= $this->escape($this->app->getData()->document) ?>" size="30"><br>
+    (說明需要包含您的應用程式目的、使用資料方式、展示位置以及程式碼開源位置 The document should include the purpose of your app, how you use the data, the URL of your app and where you open your source code)<br>
+    Client Secret: <input type="text" readonly="readonly" value="<?= $this->escape($this->app->getData()->client_secret) ?>"><br>
+    <h3>回傳網址 Redirect URLs</h3>
+    <div class="redirect-urls">
+    <?php foreach ($this->app->getData()->redirect_urls as $url) { ?>
+    <div class="redirect-url"><input type="text" name="redirect_urls[]" value="<?= $this->escape($url) ?>"> <a href="#" class="delete-url">Delete</a></div>
+    <?php } ?>
+</div>
+<script type="text/html" id="tmpl-redirect-url">
+<div class="redirect-url"><input type="text" name="redirect_urls[]"><a href="#" class="delete-url">Delete</a></div>
+</script>
+    <button type="button" id="button-add-url">Add URL</button>
+    <button type="submit">Update</button>
+<script>
+$('#button-add-url').click(function(e){
+    e.preventDefault();
+    $('.redirect-urls').append($($('#tmpl-redirect-url').html()));
+}).click();
+
+$('.redirect-urls').on('click', '.delete-url', function(e){
+    e.preventDefault();
+    $(this).parents('.redirect-url').remove();
+});
+</script>
+</form>
+<?= $this->partial('common/footer.phtml', $this) ?>

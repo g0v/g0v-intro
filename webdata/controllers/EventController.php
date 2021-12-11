@@ -12,7 +12,7 @@ class EventController extends Pix_Controller
     public function showAction()
     {
         list(, /*event*/, /*show*/, $id) = explode('/', $this->getURI());
-        if (!$event = Event::find(strval($id))) {
+        if (!$event = Event::find_by_id(strval($id))) {
             return $this->redirect('/');
         }
         $this->view->event = $event;
@@ -27,7 +27,7 @@ class EventController extends Pix_Controller
     public function downloadcsvAction()
     {
         list(, /*event*/, /*downloadcsv*/, $id) = explode('/', $this->getURI());
-        if (!$event = Event::find(strval($id))) {
+        if (!$event = Event::find_by_id(strval($id))) {
             return $this->alert("{$id} not found", '/');
         }
 
@@ -51,32 +51,10 @@ class EventController extends Pix_Controller
         return $this->noview();
     }
 
-    public function dataAction()
-    {
-        list(, /*event*/, /*data*/, $id) = explode('/', $this->getURI());
-        if (!$event = Event::find(strval($id))) {
-            return $this->alert("{$id} not found", '/');
-        }
-
-        $ret = array();
-        foreach (Intro::search(array('event' => $id))->order('created_at ASC') as $intro) {
-            $data = json_decode($intro->data);
-            $obj = new StdClass;
-            $obj->created_at = $intro->created_at;
-            $obj->keyword = $data->keyword;
-            $obj->voice_path = $data->voice_path;
-            $ret[] = $obj;
-        }
-        header('Access-Control-Allow-Origin: *');
-        header('Access-Control-Allow-Methods: GET');
-        return $this->json($ret);
-    }
-
-
     public function saveintroAction()
     {
         list(, /*event*/, /*saveintro*/, $id) = explode('/', $this->getURI());
-        if (!$event = Event::find(strval($id))) {
+        if (!$event = Event::find_by_id(strval($id))) {
             return $this->alert("{$id} not found", '/');
         }
 
@@ -113,6 +91,7 @@ class EventController extends Pix_Controller
                     'Body' => file_get_contents($tmpfile . '.mp3'),
                     'ACL' => 'public-read',
                     'ContentType' => 'audio/mpeg',
+                    'CacheControl' => 'max-age=31536000,public'
                 ]);
                 unlink($tmpfile . '.mp3');
                 $data['voice_path'] = $path;
@@ -137,6 +116,18 @@ class EventController extends Pix_Controller
         return $this->alert("自介儲存成功", "/event/show/{$id}");
     }
 
+    public function slideAction()
+    {
+        list(, /*event*/, /*slide*/, $event_id) = explode('/', $this->getURI());
+        $this->view->api = 'https://' . $_SERVER['HTTP_HOST'] . '/api/event/intro/?event_id=' . urlencode($event_id);
+    }
+
+    public function sliderunAction()
+    {
+        list(, /*event*/, /*sliderun*/, $event_id) = explode('/', $this->getURI());
+        $this->view->api = 'https://' . $_SERVER['HTTP_HOST'] . '/api/event/intro/?event_id=' . urlencode($event_id);
+    }
+
     public function userinfoAction()
     {
         list(, /*event*/, /*userinfo*/, $event_id) = explode('/', $this->getURI());
@@ -145,8 +136,19 @@ class EventController extends Pix_Controller
         $ret->error = false;
         $ret->data = new StdClass;
         if ($users) {
+            foreach (User::search(1)->searchIn('slack_id', $users) as $user) {
+                $ret->data->{$user->slack_id} = new StdClass;
+                $ret->data->{$user->slack_id}->display_name = $user->getDisplayName();
+                $ret->data->{$user->slack_id}->avatar = $user->getImage();
+                $ret->data->{$user->slack_id}->account = $user->account;
+            }
             foreach (Intro::search(array('event' => $event_id))->searchIn('created_by', $users) as $intro) {
-                $ret->data->{$intro->created_by} = json_decode($intro->data);
+                $data = json_decode($intro->data);
+                foreach (array('keyword', 'voice_path', 'voice_length') as $k) {
+                    if (property_exists($data, $k)) {
+                        $ret->data->{$intro->created_by}->{$k} = $data->{$k};
+                    }
+                }
             }
         }
         return $this->json($ret);

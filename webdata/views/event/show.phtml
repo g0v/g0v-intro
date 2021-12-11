@@ -43,12 +43,17 @@ $('#record-time').text('有錄音記錄，錄音長度 ' + record_length.toPreci
 </form>
 <script>
 var recorder;
+var intro_duration = <?= intval($this->event->getData()->{'intro-duration'}) ?: 10 ?>;
+var record_ending = false;
 
 setInterval(function(){
-	if ($('#record').data('record_at')) {
+	if (!record_ending && $('#record').data('record_at')) {
 		var delta = ((new Date).getTime() - $('#record').data('record_at')) / 1000;
 		$('#record-time').text('錄音中 Recording：' + delta.toPrecision(2) + ' 秒 Sec.');
 		if (delta > 10) {
+        $('#record-time').text('錄音中 Recording：' + delta.toPrecision(2) + ' 秒 Sec. / ' + intro_duration);
+        if (delta > intro_duration) {
+            record_ending = true;
 			recordButtonClick();
 		}
 	}
@@ -56,7 +61,9 @@ setInterval(function(){
 
 var perm_asked = false;
 var recordButtonClick = function(e){
-	e.preventDefault();
+    if (e) {
+        e.preventDefault();
+    }
     if (!perm_asked) {
       // get audio stream from user's mic
       navigator.mediaDevices.getUserMedia({
@@ -88,7 +95,8 @@ var recordButtonClick = function(e){
 		$(this).data('record_at', null);
 		$(this).text('按我錄音 Click to record');
 		recorder.stop();
-	} else {
+    } else {
+        record_ending = false;
 		$(this).data('record_at', new Date);
 		$('#replay').hide();
 		$(this).text('結束錄音 Finish the record');
@@ -131,7 +139,7 @@ recordButton.addEventListener('click', recordButtonClick);
 <hr>
 <h2>所有人的自介 g0ver's Intro</h2>
 <a href="/event/downloadcsv/<?= $this->event->id ?>">下載成 CSV Download as CSV</a>
-<a href="/event/data/<?= $this->event->id ?>">API</a>
+<a href="/api/event/intro/?event_id=<?= urlencode($this->event->id) ?>">API</a>
 <style>
 @media (min-width: 576px) {  .card-columns { column-count: 2; } } @media (min-width: 768px) { .card-columns {  column-count: 3; } }  @media (min-width: 992px) { .card-columns {  column-count: 4; } }  @media (min-width: 1200px) { .card-columns {  column-count: 5; } }
 </style>

@@ -1,0 +1,32 @@
+<?= $this->partial('common/header.phtml', $this) ?>
+<h1>應用程式 App</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>App Name</th>
+            <th>安裝人數 User count</th>
+            <th>動作 Action</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php foreach (OAuthApp::search(array('created_by' => $this->user->slack_id)) as $app) { ?>
+    <tr>
+        <td><a href="/oauth/app?id=<?= urlencode($app->client_id) ?>"><?= $this->escape($app->client_id) ?></a></td>
+        <td><?= $this->escape($app->getData()->name) ?></td>
+        <td><?= count(OAuthSession::search(array('app_id' => $app->client_id))) ?></td>
+        <td></td>
+    </tr>
+    <?php } ?>
+    </tbody>
+</table>
+<hr>
+<h2>新增應用程式 Add App</h2>
+<form method="post" action="/oauth/addapp">
+    <input type="hidden" name="sToken" value="<?= Session::getStoken() ?>">
+    應用程式名稱 App Name: <input type="text" name="name"><br>
+    應用程式說明網址 URL of the document of your App: <input type="text" name="doc" value="https://" size="30"><br>
+    (說明需要包含您的應用程式目的、使用資料方式、展示位置以及程式碼開源位置 The document should include the purpose of your app, how you use the data, the URL of your app and where you open your source code)<br>
+    <button type="submit">新增</button>
+</form>
+<?= $this->partial('common/footer.phtml', $this) ?>
