@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 <script src="https://www.youtube.com/iframe_api"></script>
-<script src="//jitsi.jothon.online/libs/lib-jitsi-meet.min.js"></script>
+<script src="//meet.jit.si/libs/lib-jitsi-meet.min.js"></script>
 <style>
 
 body {
@@ -503,15 +503,16 @@ $(window).resize(function(e){
 
 const options = {
     hosts: {
-        domain: 'jitsi.jothon.online',
-        muc: 'conference.' + 'jitsi.jothon.online',
-        focus: 'focus.' + 'jitsi.jothon.online',
-    },
-    bosh: 'wss://jitsi.jothon.online/xmpp-websocket',
-    websocket: 'wss://jitsi.jothon.online/xmpp-websocket',
-
-   // The name of client node advertised in XEP-0115 'c' stanza
-   clientNode: 'http://jitsi.org/jitsimeet'
+                    domain: "meet.jit.si",
+                    muc: "conference.meet.jit.si",
+                    focus: "focus.meet.jit.si",
+                },
+                
+                //externalConnectUrl: "https://meet.jit.si/http-pre-bind",
+                serviceUrl: "https://meet.jit.si/http-bind",
+                //websocket: "wss://meet.jit.si/xmpp-websocket",
+                clientNode: "http://jitsi.org/jitsimeet",
+                openBridgeChannel: 'websocket',
 };
 
 const initOptions = {
@@ -571,8 +572,9 @@ var connect_channel_jitsi = function(domain, name, confOptions){
             channel_options.hosts.domain = domain;
             channel_options.hosts.muc = 'conference.' + domain;
             channel_options.hosts.focus = 'focus.' + domain;
-            channel_options.bosh = 'wss://' + domain + '/xmpp-websocket?room=' + name.toLowerCase();
+            channel_options.serviceUrl = 'https://' + domain + '/http-bind';
             channel_options.websocket= 'wss://' + domain + '/xmpp-websocket';
+            channel_options.openBridgeChannel = 'websocket';
         } else if (channel_connection) {
             channel_connection.disconnect();
         }
@@ -699,7 +701,7 @@ var update_channel_user_list = function(){
             }
         }
         if ($('#member-' + id).length == 0) {
-            play_sound('https://jitsi.jothon.online/sounds/joined.wav');
+            play_sound('https://meet.jit.si/sounds/joined.wav');
 			var member_box = $($('#tmpl-member-box').html());
 			member_box.attr('id', `member-${id}`);
 			if (participant && !participant.isAudioMuted()) {
@@ -804,7 +806,7 @@ var join_main_room = function(){
 	    confID: '',
     };
     main_room_id = 'jothononlinemain' + event_info.event.seq;
-    confOptions.confID = 'jitsi.jothon.online' + '/' + main_room_id;
+    confOptions.confID = 'meet.jit.si' + '/' + main_room_id;
     main_room = main_connection.initJitsiConference(main_room_id, confOptions);
 	main_users.me = {};
 	if (login_data !== null) {
@@ -1160,9 +1162,9 @@ var enter_channel = function(channel_id){
         channel_room_id = matches[2].toLowerCase();
         confOptions.confID = channel_domain + '/' + channel_room_id;
     } else {
-        channel_domain = 'jitsi.jothon.online';
+        channel_domain = 'meet.jit.si';
         channel_room_id = 'jothononlinechannel' + channel_id;
-        confOptions.confID = 'jitsi.jothon.online' + '/' + channel_room_id;
+        confOptions.confID = 'meet.jit.si' + '/' + channel_room_id;
     }
     connect_channel_jitsi(channel_domain, channel_room_id, confOptions).then(function(confOptions){
         channel_room = channel_connection.initJitsiConference(channel_room_id, confOptions);
