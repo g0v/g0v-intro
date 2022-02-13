@@ -39,6 +39,9 @@ $('#record-time').text('有錄音記錄，錄音長度 ' + record_length.toPreci
 <?php } ?>
 </script>
 <?php } ?>
+<?php if ($_GET['status']) { ?>
+$('[name="keyword"]').val(<?= json_encode($_GET['status']) ?>);
+<?php } ?>
 <button type="submit" class="btn btn-primary">儲存 SAVE</button>
 </form>
 <script>
