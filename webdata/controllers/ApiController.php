@@ -31,6 +31,29 @@ class ApiController extends Pix_Controller
         }
     }
 
+    public function postmessageAction()
+    {
+        $token = $_GET['token'];
+        if (!$bot = BotToken::find_by_token(strval($token))) {
+            return $this->json(['error' => true, 'message' => 'token not found']);
+        }
+        $bot_data = json_decode($bot->data);
+        if (!$channel = $_GET['channel']) {
+            return $this->json(['error' => true, 'message' => 'no channel']);
+        }
+        if ($_GET['channel'] != '#jothonbot-sandbox' and !in_array($_GET['channel'], explode(';', $bot_data))) {
+            return $this->json(['error' => true, 'message' => "channel {$_GET['channel']} is not in your list {$bot_data->channels}"]);
+        }
+        if (!$_POST['text']) {
+            return $this->json(['error' => true, 'message' => 'no POST text value']);
+        }
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, sprintf('https://slack.com/api/chat.postMessage?token=%s&channel=%s&username=%s', urlencode(getenv('SLACK_ACCESS_TOKEN')), urlencode($_GET['channel']), urlencode($bot_data->displayname)));
+        curl_setopt($curl, CURLOPT_POSTFIELDS, 'text=' . urlencode($_POST['text']));
+        curl_exec($curl);
+        return $this->noview();
+    }
+
     public function meAction()
     {
         if (!$user = $this->view->user) {
