@@ -27,7 +27,7 @@
 </table>
 <hr>
 <?php if ($this->token) { ?>
-<code>curl -XPOST -d 'text=Hello+World' 'https://meet.jothon.online/api/postMessage?token=<?= $this->token->token ?>&amp;channel=<?= urlencode('#jothonbot-sandbox') ?>'</code>
+<code>curl -XPOST -d 'text=Hello+World' 'https://<?= $_SERVER['HTTP_HOST'] ?>/api/postMessage?token=<?= $this->token->token ?>&amp;channel=<?= urlencode('#jothonbot-sandbox') ?>'</code>
 <?php $token_data = json_decode($this->token->data) ?>
 <h2>修改 Bot</h2>
 <?php } else { ?>
