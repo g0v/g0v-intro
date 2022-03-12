@@ -1,0 +1,44 @@
+<?= $this->partial('common/header.phtml', $this) ?>
+<h1>機器人張貼管理</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>名稱</th>
+            <th>目的</th>
+            <th>發言頻道</th>
+            <th>顯示名稱</th>
+            <th>動作</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php foreach (BotToken::search(array('owner' => $this->user->slack_id)) as $token) { ?>
+    <?php $data = json_decode($token->data) ?>
+    <tr>
+        <td><?= $token->token_id ?></td>
+        <td><?= $this->escape($data->name) ?></td>
+        <td><?= $this->escape($data->purpose) ?></td>
+        <td><?= $this->escape($data->channels) ?></td>
+        <td><?= $this->escape($data->displayname) ?></td>
+        <td></td>
+    </tr>
+    <?php } ?>
+    </tbody>
+</table>
+<hr>
+<?php if ($this->token) { ?>
+<code>curl -XPOST -d 'text=Hello+World' 'https://meet.jothon.online/api/postMessage?token=<?= $this->token->token ?>&amp;channel=<?= urlencode('#jothonbot-sandbox') ?>'</code>
+<?php $token_data = json_decode($this->token->data) ?>
+<h2>修改 Bot</h2>
+<?php } else { ?>
+<h2>新增 Bot</h2>
+<?php } ?>
+<form method="post" action="/bot/addbot<?= $this->token ? "?id={$this->token->token_id}": '' ?>">
+    <input type="hidden" name="sToken" value="<?= Session::getStoken() ?>">
+    機器人名稱：<input type="text" name="name" value="<?= $token ? $this->escape($token_data->name) : '' ?>"><br>
+    機器人目的：<input type="text" name="purpose" value="<?= $token ? $this->escape($token_data->purpose) : '' ?>">(請說明這機器人的功用)<br>
+    機器人發言頻道：<input type="text" name="channels" value="<?= $token ? $this->escape($token_data->channels) : '' ?>">(請用「#jothon;#rand0m」格式，需包含 # ，以 ; 分隔不要有空白)<br>
+    機器人顯示名稱：<input type="text" name="displayname" value="<?= $token ? $this->escape($token_data->displayname) : '' ?>">
+    <button type="submit">新增</button>
+</form>
+<?= $this->partial('common/footer.phtml', $this) ?>
