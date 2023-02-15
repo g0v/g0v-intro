@@ -20,7 +20,7 @@
         <td><?= $this->escape($data->purpose) ?></td>
         <td><?= $this->escape($data->channels) ?></td>
         <td><?= $this->escape($data->displayname) ?></td>
-        <td></td>
+        <td><a href="?id=<?= $token->token_id ?>">Edit</a></td>
     </tr>
     <?php } ?>
     </tbody>
