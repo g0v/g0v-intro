@@ -41,7 +41,7 @@ class ApiController extends Pix_Controller
         if (!$channel = $_GET['channel']) {
             return $this->json(['error' => true, 'message' => 'no channel']);
         }
-        if ($_GET['channel'] != '#jothonbot-sandbox' and !in_array($_GET['channel'], explode(';', $bot_data))) {
+        if ($_GET['channel'] != '#jothonbot-sandbox' and !in_array($_GET['channel'], explode(';', $bot_data->channels))) {
             return $this->json(['error' => true, 'message' => "channel {$_GET['channel']} is not in your list {$bot_data->channels}"]);
         }
         if ($_GET['channel'] == '#jothonbot-log') {
