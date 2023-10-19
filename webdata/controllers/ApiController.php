@@ -47,12 +47,24 @@ class ApiController extends Pix_Controller
         if ($_GET['channel'] == '#jothonbot-log') {
             return $this->json(['error' => true, 'message' => '#jothonbot-log is not allowed']);
         }
-        if (!$_POST['text']) {
-            return $this->json(['error' => true, 'message' => 'no POST text value']);
+        if ($_SERVER['CONTENT_TYPE'] == 'application/x-www-form-urlencoded') {
+            if (!$_POST['text']) {
+                return $this->json(['error' => true, 'message' => 'no POST text value']);
+            }
+            $text = $_POST['text'];
+        } else {
+            $request_body = file_get_contents('php://input');
+            if (!$obj = json_decode($request_body)) {
+                return $this->json(['error' => true, 'message' => 'invalid json']);
+            }
+            if (!property_exists($obj, 'text')) {
+                return $this->json(['error' => true, 'message' => 'no text']);
+            }
+            $text = $obj->text;
         }
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, sprintf('https://slack.com/api/chat.postMessage?token=%s&channel=%s&username=%s', urlencode(getenv('SLACK_ACCESS_TOKEN')), urlencode($_GET['channel']), urlencode($bot_data->displayname)));
-        curl_setopt($curl, CURLOPT_POSTFIELDS, 'text=' . urlencode($_POST['text']));
+        curl_setopt($curl, CURLOPT_POSTFIELDS, 'text=' . urlencode($text));
         curl_exec($curl);
         return $this->noview();
     }
