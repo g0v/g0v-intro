@@ -9,8 +9,16 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.css">
 <script>
-$(function(){
-	$.get(<?= json_encode($this->api) ?>, function(ret){
+var data_cache = null;
+var update_data = function(){
+    $.get(<?= json_encode($this->api) ?>, function(ret){
+        if (JSON.stringify(ret) == data_cache) {
+            setTimeout(update_data, 3000);
+            return;
+        }
+        data_cache = JSON.stringify(ret);
+        $('.carousel-inner').empty();
+
 		for (var i = 0; i < ret.data.length; i ++) {
             intro = ret.data[i];
 			var dom = $($('#tmpl-slide').html());
@@ -26,9 +34,13 @@ $(function(){
 		$('.carousel').on('slide.bs.carousel', function (e) {
 		  // do something...
 		});
+        $('.carousel').carousel('next').carousel({interval: 5000, ride: true, pause: false});
+        setTimeout(update_data, 3000);
 	}, 'json');
+};
 
-    $('.carousel').carousel('next').carousel({interval: 5000, ride: true, pause: false});
+$(function(){
+    update_data();
 });
 
 
